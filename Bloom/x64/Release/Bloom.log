@@ -1,0 +1,49 @@
+﻿  glad.c
+  Bloom.cpp
+C:\Users\Vaughan\Documents\NFTART\Bloom\CPP\Bloom\Species.cpp(88,27): warning C4244: 'initializing': conversion from 'int' to 'float', possible loss of data
+C:\Users\Vaughan\Documents\NFTART\Bloom\CPP\Bloom\Species.cpp(127,32): warning C4244: '=': conversion from 'double' to 'T', possible loss of data
+          with
+          [
+              T=float
+          ]
+C:\Users\Vaughan\Documents\NFTART\Bloom\CPP\Bloom\Species.cpp(136,11): warning C4244: 'initializing': conversion from 'double' to 'float', possible loss of data
+C:\Users\Vaughan\Documents\NFTART\Bloom\CPP\Bloom\Species.cpp(137,11): warning C4244: 'initializing': conversion from 'double' to 'float', possible loss of data
+C:\Users\Vaughan\Documents\NFTART\Bloom\CPP\Bloom\Species.cpp(138,11): warning C4244: 'initializing': conversion from 'double' to 'float', possible loss of data
+C:\Users\Vaughan\Documents\NFTART\Bloom\CPP\Bloom\Bloom.cpp(31,131): warning C4244: '=': conversion from 'T' to 'T', possible loss of data
+          with
+          [
+              T=int
+          ]
+          and
+          [
+              T=float
+          ]
+C:\Users\Vaughan\Documents\NFTART\Bloom\CPP\Bloom\Bloom.cpp(51,21): warning C4244: 'initializing': conversion from 'double' to 'int', possible loss of data
+C:\Users\Vaughan\Documents\NFTART\Bloom\CPP\Bloom\Bloom.cpp(70,38): warning C4244: 'initializing': conversion from 'double' to 'int', possible loss of data
+C:\Users\Vaughan\Documents\NFTART\Bloom\CPP\Bloom\Bloom.cpp(80,135): warning C4244: '=': conversion from 'T' to 'T', possible loss of data
+          with
+          [
+              T=int
+          ]
+          and
+          [
+              T=float
+          ]
+C:\Users\Vaughan\Documents\NFTART\Bloom\CPP\Bloom\Bloom.cpp(117,15): warning C4244: 'argument': conversion from 'time_t' to 'unsigned int', possible loss of data
+C:\Users\Vaughan\Documents\NFTART\Bloom\CPP\Bloom\Bloom.cpp(232,21): warning C4244: 'initializing': conversion from 'double' to 'float', possible loss of data
+C:\Users\Vaughan\Documents\NFTART\Bloom\CPP\Bloom\Bloom.cpp(250,36): warning C4244: '=': conversion from 'double' to 'float', possible loss of data
+  Species.cpp
+C:\Users\Vaughan\Documents\NFTART\Bloom\CPP\Bloom\Species.cpp(88,27): warning C4244: 'initializing': conversion from 'int' to 'float', possible loss of data
+C:\Users\Vaughan\Documents\NFTART\Bloom\CPP\Bloom\Species.cpp(127,32): warning C4244: '=': conversion from 'double' to 'T', possible loss of data
+          with
+          [
+              T=float
+          ]
+C:\Users\Vaughan\Documents\NFTART\Bloom\CPP\Bloom\Species.cpp(136,11): warning C4244: 'initializing': conversion from 'double' to 'float', possible loss of data
+C:\Users\Vaughan\Documents\NFTART\Bloom\CPP\Bloom\Species.cpp(137,11): warning C4244: 'initializing': conversion from 'double' to 'float', possible loss of data
+C:\Users\Vaughan\Documents\NFTART\Bloom\CPP\Bloom\Species.cpp(138,11): warning C4244: 'initializing': conversion from 'double' to 'float', possible loss of data
+  Generating code
+  Previous IPDB not found, fall back to full compilation.
+  All 404 functions were compiled because no usable IPDB/IOBJ from previous compilation was found.
+  Finished generating code
+  Bloom.vcxproj -> C:\Users\Vaughan\Documents\NFTART\Bloom\CPP\x64\Release\Bloom.exe
