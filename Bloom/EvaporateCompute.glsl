@@ -27,12 +27,13 @@ layout( std430 , binding = 4 ) volatile buffer trailBuffer
 
 
 void EvaporatePixel(ivec2 pixel_coords){
+
     uint index = uint(pixel_coords.y * resolution.x + pixel_coords.x);
     vec4 sampleColour = trail_buffer.trailpixels[index].pixelColour;
     barrier();
     // we now need to blur this pixel by surroundings
-    vec4 sum = sampleColour;
-    int samples = 1;
+    vec4 sum  = vec4(0,0,0,0);
+    int samples = 0;
 
     int blendSize = 1;
     int[] idArr = int[](speciesCount);
@@ -41,57 +42,59 @@ void EvaporatePixel(ivec2 pixel_coords){
     int blendSamples = 0;
     //evap speed
      
-//    for(int offsetX =-blendSize; offsetX <= blendSize; offsetX++)
-//    {
-//        for(int offsetY =-blendSize; offsetY <= blendSize; offsetY++)
-//        {
-//            int sampleX = pixel_coords.x + offsetX;
-//            int sampleY = pixel_coords.y + offsetY;
-//
-//            if(sampleX >= 0 && sampleX < resolution.x && sampleY >= 0 && sampleY < resolution.y )
-//            {
-//                uint sampleIndex = uint(sampleY * resolution.x + sampleX);
-//                sum += trail_buffer.trailpixels[sampleIndex].pixelColour;
-//                averageBlendSpeed += trail_buffer.trailpixels[sampleIndex].SpeciesID_evapSpeed_blendSpeed.z;
-////                if(trail_buffer.trailpixels[sampleIndex].SpeciesID_evapSpeed_blendSpeed.x >= 0)
-//                blendSamples++;
-//
-//                //inc the id in array so we can get that max later
-//                idArr[int(trail_buffer.trailpixels[uint(sampleY * resolution.x + sampleX)].SpeciesID_evapSpeed_blendSpeed.x)]++;
-//                samples++;
-//            }
-//       }
-//
-//    }
-
-
-    int idMax = 0;
-    for(int i ; i < idArr.length(); i++)
+    for(int offsetX =-blendSize; offsetX <= blendSize; offsetX++)
     {
-         if(idArr[i] < idMax)
-            idMax = idArr[i];
+        for(int offsetY =-blendSize; offsetY <= blendSize; offsetY++)
+        {
+            int sampleX = pixel_coords.x + offsetX;
+            int sampleY = pixel_coords.y + offsetY;
+
+            if(sampleX >= 0 && sampleX < resolution.x && sampleY >= 0 && sampleY < resolution.y )
+            {
+                uint sampleIndex = uint(sampleY * resolution.x + sampleX);
+                sum += trail_buffer.trailpixels[sampleIndex].pixelColour;
+                averageBlendSpeed += trail_buffer.trailpixels[sampleIndex].SpeciesID_evapSpeed_blendSpeed.z;
+
+                //inc the id in array so we can get that max later
+                idArr[int(trail_buffer.trailpixels[sampleIndex].SpeciesID_evapSpeed_blendSpeed.x)]++;
+                samples++;
+            }
+       }
+
     }
 
-    //average blur colour;
+//    int idMax = 0;
+//    for(int i ; i < idArr.length(); i++)
+//    {
+//         if(idArr[i] < idMax)
+//            idMax = idArr[i];
+//    }
+//
+//    average blur colour;
     vec4 blurResult = sum/samples;
 
-        //average blur speed based on all species
-    averageBlendSpeed/= blendSamples;
+
+//    average blur speed based on all species
+    averageBlendSpeed /= samples;
 
     //Blend colour over time
-//    sampleColour = mix(sampleColour, blurResult,  trail_buffer.trailpixels[index].SpeciesID_evapSpeed_blendSpeed.z  * deltaTime);
+    sampleColour = mix(sampleColour, blurResult,   trail_buffer.trailpixels[index].SpeciesID_evapSpeed_blendSpeed.z  * deltaTime);
     //decrease brightness over time
     sampleColour.a =  max(0.0, sampleColour.a - trail_buffer.trailpixels[index].SpeciesID_evapSpeed_blendSpeed.y * deltaTime);
     //set colour in buffer
-    trail_buffer.trailpixels[uint(pixel_coords.y * resolution.x + pixel_coords.x)].pixelColour = sampleColour;
 
+
+    //copy data across to new pixel
+    trail_buffer.trailpixels[index].pixelColour = sampleColour;
+//    trail_buffer.TrailPixel[index].SpeciesID_evapSpeed_blendSpeed.y = 
     
     //set ID to the most present speciesID of sample size
-    if(sampleColour.a > 0.01)
-        trail_buffer.trailpixels[uint(pixel_coords.y * resolution.x + pixel_coords.x)].SpeciesID_evapSpeed_blendSpeed.x = idMax;
-    else
-    //remove species ID when too dim
-        trail_buffer.trailpixels[uint(pixel_coords.y * resolution.x + pixel_coords.x)].SpeciesID_evapSpeed_blendSpeed.x = -1;
+//    if(sampleColour.a > 0.01)
+//        trail_buffer.trailpixels[index].SpeciesID_evapSpeed_blendSpeed.x = trail_buffer.trailpixels[index].SpeciesID_evapSpeed_blendSpeed.x;
+//    else
+////    remove species ID when too dim
+//        trail_buffer.trailpixels[index].SpeciesID_evapSpeed_blendSpeed.x = -1;
+
 
     barrier();
       //output trailmap

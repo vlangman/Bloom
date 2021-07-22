@@ -45,7 +45,7 @@ void SquareSpawner(std::vector<Species>& speciesList, std::vector<Species>& gene
 
 void RingSpawner(std::vector<Species> &speciesList, std::vector<Species> &generatedSpecies, std::vector<TrailPixel> &trailBuffer )
 {
-    float raduis = 20;
+    float raduis = 150;
     int h = SCR_HEIGHT / 2;
     int k = SCR_WIDTH / 2;
     int angleOffset = 360.0 / generatedSpecies.size();
@@ -75,11 +75,14 @@ void RingSpawner(std::vector<Species> &speciesList, std::vector<Species> &genera
                     if (angleToPoint >= (sIndex * angleOffset) && angleToPoint <= ((sIndex + 1) * angleOffset))
                     {
                         selectedSpecies = generatedSpecies[sIndex];
-                        selectedSpecies.active_blendSize_sensorSize_speciesIndex.x = true;
+                        //activate species
+                        selectedSpecies.active_blendSize_sensorSize_speciesIndex.x = 1;
+                        //set trail from species params
                         trailBuffer[index].pixelColour = selectedSpecies.trailColour;
                         trailBuffer[index].SpeciesID_evapSpeed_blendSpeed.x = selectedSpecies.active_blendSize_sensorSize_speciesIndex.w;
                         trailBuffer[index].SpeciesID_evapSpeed_blendSpeed.z = selectedSpecies.evapSpeed_blendSpeed_sensOffsetDist_senseAngleSpacing.y;
                         trailBuffer[index].SpeciesID_evapSpeed_blendSpeed.y = selectedSpecies.evapSpeed_blendSpeed_sensOffsetDist_senseAngleSpacing.x;
+                        //ensure species has a position
                         selectedSpecies.position = glm::vec4(x, y, 0, 0);
                         speciesList[index] = selectedSpecies;
                     }
@@ -89,7 +92,7 @@ void RingSpawner(std::vector<Species> &speciesList, std::vector<Species> &genera
                     std::cout << "UH OH" << std::endl;
                 }
 
-         
+
 
             }
   
@@ -118,7 +121,6 @@ void CreateBuffers( GLuint AgentBuffer, int speciesCount)
     std::cout << "####################################" << std::endl;
 
 
-    //speciesCount = 1;  
 
     std::vector<Species> generatedSpecies;
     for (int i = 0; i < speciesCount; i++)
@@ -213,6 +215,7 @@ int main()
     GenerateVertexBuffer(&EBO, &VAO, &VBO);
     
     int speciesCount = (rand() % 2) + 1;
+    speciesCount = 1;
     GLuint AgentBuffer = 0;
     CreateBuffers(AgentBuffer, speciesCount);
 
@@ -251,9 +254,6 @@ int main()
         total += deltaTime;
 
 
-        GLint dt = glGetUniformLocation(computeProgram, "deltaTime");
-
-
         //evaporate trailMap
         GLint dtEv = glGetUniformLocation(evaporateProgram, "deltaTime");
         GLint speciesCountEV = glGetUniformLocation(evaporateProgram, "speciesCount");
@@ -264,13 +264,13 @@ int main()
         glMemoryBarrier(GL_ALL_BARRIER_BITS);
         //evaporate trailMap
 
-
+        GLint dt = glGetUniformLocation(computeProgram, "deltaTime");
         //compute particle sim
         glUseProgram(computeProgram);
         //std::cout << deltaTime << std::endl;
         glUniform1f(dt, deltaTime);
 
-        glDispatchCompute(SCR_WIDTH , SCR_HEIGHT, 1);
+        glDispatchCompute(SCR_WIDTH, SCR_HEIGHT, 1);
         glMemoryBarrier(GL_ALL_BARRIER_BITS);
         //compute particle sim
 
