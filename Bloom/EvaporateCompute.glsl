@@ -2,8 +2,8 @@
 layout(local_size_x = 1, local_size_y = 1) in;
 layout(rgba32f, binding = 0) writeonly uniform image2D img_output;
 layout(location = 2) uniform float deltaTime;
-const vec2 resolution = vec2(800.0,800.0);
 layout(location = 5) uniform int speciesCount;
+layout(location = 6) uniform vec2 resolution;
 
 struct Species {
 	vec4 speciesColour;
@@ -39,7 +39,7 @@ void EvaporatePixel(ivec2 pixel_coords){
     int[] idArr = int[](speciesCount);
     //blend speed
     float averageBlendSpeed = 0;
-    int blendSamples = 0;
+
     //evap speed
      
     for(int offsetX =-blendSize; offsetX <= blendSize; offsetX++)
@@ -51,25 +51,27 @@ void EvaporatePixel(ivec2 pixel_coords){
 
             if(sampleX >= 0 && sampleX < resolution.x && sampleY >= 0 && sampleY < resolution.y )
             {
+
                 uint sampleIndex = uint(sampleY * resolution.x + sampleX);
                 sum += trail_buffer.trailpixels[sampleIndex].pixelColour;
                 averageBlendSpeed += trail_buffer.trailpixels[sampleIndex].SpeciesID_evapSpeed_blendSpeed.z;
-
-                //inc the id in array so we can get that max later
-                idArr[int(trail_buffer.trailpixels[sampleIndex].SpeciesID_evapSpeed_blendSpeed.x)]++;
                 samples++;
+                //inc the id in array so we can get that max later
+                if(trail_buffer.trailpixels[sampleIndex].SpeciesID_evapSpeed_blendSpeed.x != -1)
+                    idArr[int(trail_buffer.trailpixels[sampleIndex].SpeciesID_evapSpeed_blendSpeed.x)]++;
+
             }
        }
 
     }
 
-//    int idMax = 0;
-//    for(int i ; i < idArr.length(); i++)
-//    {
-//         if(idArr[i] < idMax)
-//            idMax = idArr[i];
-//    }
-//
+    int idMax = 0;
+    for(int i ; i < idArr.length(); i++)
+    {
+         if(idArr[i] < idMax)
+            idMax = idArr[i];
+    }
+
 //    average blur colour;
     vec4 blurResult = sum/samples;
 
@@ -78,7 +80,7 @@ void EvaporatePixel(ivec2 pixel_coords){
     averageBlendSpeed /= samples;
 
     //Blend colour over time
-    sampleColour = mix(sampleColour, blurResult,   trail_buffer.trailpixels[index].SpeciesID_evapSpeed_blendSpeed.z  * deltaTime);
+    sampleColour = mix(sampleColour, blurResult,   averageBlendSpeed  * deltaTime);
     //decrease brightness over time
     sampleColour.a =  max(0.0, sampleColour.a - trail_buffer.trailpixels[index].SpeciesID_evapSpeed_blendSpeed.y * deltaTime);
     //set colour in buffer
@@ -86,14 +88,13 @@ void EvaporatePixel(ivec2 pixel_coords){
 
     //copy data across to new pixel
     trail_buffer.trailpixels[index].pixelColour = sampleColour;
-//    trail_buffer.TrailPixel[index].SpeciesID_evapSpeed_blendSpeed.y = 
     
     //set ID to the most present speciesID of sample size
-//    if(sampleColour.a > 0.01)
-//        trail_buffer.trailpixels[index].SpeciesID_evapSpeed_blendSpeed.x = trail_buffer.trailpixels[index].SpeciesID_evapSpeed_blendSpeed.x;
-//    else
-////    remove species ID when too dim
-//        trail_buffer.trailpixels[index].SpeciesID_evapSpeed_blendSpeed.x = -1;
+    if(sampleColour.a > 0.01)
+        trail_buffer.trailpixels[index].SpeciesID_evapSpeed_blendSpeed.x = trail_buffer.trailpixels[index].SpeciesID_evapSpeed_blendSpeed.x;
+    else
+//    remove species ID when too dim
+        trail_buffer.trailpixels[index].SpeciesID_evapSpeed_blendSpeed.x = -1;
 
 
     barrier();

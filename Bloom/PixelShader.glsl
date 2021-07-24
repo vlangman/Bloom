@@ -2,7 +2,7 @@
 layout(local_size_x = 1, local_size_y = 1) in;
 layout(rgba32f, binding = 0) volatile uniform image2D img_output;
 layout(location = 2) uniform float deltaTime;
-const vec2 resolution = vec2(800.0,800.0);
+layout(location = 6) uniform vec2 resolution;
 
 struct Species {
 	vec4 speciesColour;
@@ -46,18 +46,60 @@ float hashFunc(float stateIN)
 	return state / 4294967295.0;
 }
 
+//float senseAvoidType(Species speciesIn, float sensorAngleOffset)
+//{
+//    float sum = 0;
+//    int samples = 0;
+//    ivec2 sensSize = ivec2(speciesIn.active_blendSize_sensorSize_speciesIndex.z,speciesIn.active_blendSize_sensorSize_speciesIndex.z);
+//
+//    float sensorAngle = speciesIn.angle_speed_turnSpeed.x + sensorAngleOffset;
+//    vec2 sensorDir = vec2(cos(sensorAngle), sin(sensorAngle));
+//    ivec2 sensorCenter = ivec2(speciesIn.position.xy + sensorDir * speciesIn.evapSpeed_blendSpeed_sensOffsetDist_senseAngleSpacing.z);
+//
+//
+//    ivec2[8] samplePositions = ivec2[]();
+//    
+//    ivec2 position;
+//    uint index = 0;
+//    index = uint(position.y * resolution.x + position.x);
+//
+//    //top right
+//    samplePositions[0] = ivec2(sensorCenter.xy + sensSize);
+//    //bot left
+//    samplePositions[0] = ivec2(sensorCenter.xy + sensSize*-1);
+//    //
+//
+////       ivec2 pos = sensorCenter + ivec2(offsetX,offsetY);
+//        //if within bounds of texture/screen
+////        if(pos.x >= 0 && pos.x < resolution.x && pos.y >= 0 && pos.y < resolution.y)
+////        {
+////
+////            //  int SpeciesID =  int(trail_buffer.trailpixels[int(pos.y * resolution.x + pos.x)].SpeciesID_evapSpeed_blendSpeed.x);
+////            float alpha = trail_buffer.trailpixels[int(pos.y * resolution.x + pos.x)].pixelColour.a;
+////
+////            //if (FOLLOW_SELF ) only add the alpha of species == species ID   
+////            sum += alpha;
+////            samples++;
+////
+////                     
+////        }
+//        return sum/samples;
+//}
+//
+
+
 
 float sense(Species speciesIn, float sensorAngleOffset){
+
+   uint index = uint(gl_GlobalInvocationID.y * resolution.x +gl_GlobalInvocationID.x);
+   
+   float sum = 0;
+    int samples = 0;
+    int sensSize = speciesIn.active_blendSize_sensorSize_speciesIndex.z;
+
     float sensorAngle = speciesIn.angle_speed_turnSpeed.x + sensorAngleOffset;
     vec2 sensorDir = vec2(cos(sensorAngle), sin(sensorAngle));
     ivec2 sensorCenter = ivec2(speciesIn.position.xy + sensorDir * speciesIn.evapSpeed_blendSpeed_sensOffsetDist_senseAngleSpacing.z);
-    float sum = -1;
-    int samples = 0;
-    int sensSize = speciesIn.active_blendSize_sensorSize_speciesIndex.z;
-//    bool invalidMove = false;
-
-//    species_in.species[uint(gl_GlobalInvocationID.y * resolution.x +gl_GlobalInvocationID.x)].evapSpeed_blendSpeed_sensOffsetDist_senseAngleSpacing.w += .1 *deltaTime;
-//   species_in.species[uint(gl_GlobalInvocationID.y * resolution.x +gl_GlobalInvocationID.x)].evapSpeed_blendSpeed_sensOffsetDist_senseAngleSpacing.z -= 0.01*deltaTime;
 
     for(int offsetX = -sensSize; offsetX <= sensSize; offsetX++)
     {
@@ -68,50 +110,43 @@ float sense(Species speciesIn, float sensorAngleOffset){
             if(pos.x >= 0 && pos.x < resolution.x && pos.y >= 0 && pos.y < resolution.y)
             {
 
-                //  int SpeciesID =  int(trail_buffer.trailpixels[int(pos.y * resolution.x + pos.x)].SpeciesID_evapSpeed_blendSpeed.x);
+          
                 float alpha = trail_buffer.trailpixels[int(pos.y * resolution.x + pos.x)].pixelColour.a;
-
-                //if (FOLLOW_SELF ) only add the alpha of species == species ID 
+                int SpeciesID =  int(trail_buffer.trailpixels[int(pos.y * resolution.x + pos.x)].SpeciesID_evapSpeed_blendSpeed.x);
+                //if (FOLLOW_SELF ) only add the alpha of species == species ID   
                 if(speciesIn.trailBehaviour.x == FOLLOW_SELF )
                 {
-     
-                      sum += alpha;
-                      samples++;
-
+                    sum += alpha;
+                    samples++;
+                }
+                else if(speciesIn.trailBehaviour.x == AVOID_ALL )
+                {
+                       sum += 1.0 - alpha;
+                       samples++;
                 }
 
-                //if (AVOID_ALL ) sum alpha and return , we will use the lowest value of all sense results
-//                if(speciesIn.trailBehaviour.x == AVOID_ALL )
-//                {
-//                    //add the sum of dark space (1 - alpha)
-//                    sum +=  1.0 - alpha;
-//                    samples++;
-//                }
-
-////                //if (AVOID_OTHERS_FOLLOW_SELF) we first want to avoid others before it follows itself
-//                if(speciesIn.trailBehaviour.x == AVOID_OTHERS_FOLLOW_SELF)
-//                {
-//   
-//                     //if other species add it to the 
-//                     if(SpeciesID != speciesIn.active_blendSize_sensorSize_speciesIndex.w && SpeciesID != -1)
-//                        invalidMove = true;
-//
-//                     else 
-//                        sum += alpha;
-//                     samples++;
-//                }
-//        
+                     
             }
         }
     }
+        return sum/samples;
+
+//    bool invalidMove = false;
+
+//    species_in.species[uint(gl_GlobalInvocationID.y * resolution.x +gl_GlobalInvocationID.x)].evapSpeed_blendSpeed_sensOffsetDist_senseAngleSpacing.w += .1 *deltaTime;
+//   species_in.species[uint(gl_GlobalInvocationID.y * resolution.x +gl_GlobalInvocationID.x)].evapSpeed_blendSpeed_sensOffsetDist_senseAngleSpacing.z -= 0.01*deltaTime;
+
+
 
 //    if(invalidMove)
 //    {
-//        return -1;
 //    }
 
-    return sum/samples;
+
 }
+
+
+
 
 Species SelectDirection( Species speciesIn, float randomSeed ){
     

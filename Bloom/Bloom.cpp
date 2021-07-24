@@ -6,8 +6,8 @@
 
 
 // settings
-const int SCR_WIDTH = 800;
-const int SCR_HEIGHT = 800;
+const int SCR_WIDTH = 1024;
+const int SCR_HEIGHT = 1024;
 
 
 
@@ -43,11 +43,42 @@ void SquareSpawner(std::vector<Species>& speciesList, std::vector<Species>& gene
 }
 
 
+void CheckeredSpawner(std::vector<Species>& speciesList, std::vector<Species>& generatedSpecies, std::vector<TrailPixel>& trailBuffer, int offset)
+{
+    for (int x = 0; x < SCR_WIDTH; x++)
+    {
+        for (int y = 0; y < SCR_HEIGHT; y++)
+        {
+            if (x % offset == 0 && y % offset == 0)
+            {
+                unsigned int index = unsigned int(x * SCR_HEIGHT + y);
+                trailBuffer[index].SpeciesID_evapSpeed_blendSpeed.z = -1;
+                Species selectedSpecies;
+                for (int sIndex = 0; sIndex < generatedSpecies.size(); sIndex++)
+                {
+                    if (x >= sIndex * (SCR_WIDTH / generatedSpecies.size()) && x <= (sIndex + 1) * (SCR_WIDTH / generatedSpecies.size()))
+                    {
+                        selectedSpecies = generatedSpecies[sIndex];
+                        selectedSpecies.active_blendSize_sensorSize_speciesIndex.x = true;
+                        trailBuffer[index].pixelColour = selectedSpecies.trailColour;
+                        trailBuffer[index].SpeciesID_evapSpeed_blendSpeed.x = selectedSpecies.active_blendSize_sensorSize_speciesIndex.w;
+                        trailBuffer[index].SpeciesID_evapSpeed_blendSpeed.z = selectedSpecies.evapSpeed_blendSpeed_sensOffsetDist_senseAngleSpacing.y;
+                        selectedSpecies.position = glm::vec4(x, y, 0, 0);
+                        speciesList[index] = selectedSpecies;
+                    }
+                }
+            }
+
+        }
+    }
+}
+
+
 void RingSpawner(std::vector<Species> &speciesList, std::vector<Species> &generatedSpecies, std::vector<TrailPixel> &trailBuffer )
 {
-    float raduis = 150;
-    int h = SCR_HEIGHT / 2;
-    int k = SCR_WIDTH / 2;
+    float raduis = 50;
+    float h = SCR_HEIGHT / 2.0;
+    float k = SCR_WIDTH / 2.0;
     int angleOffset = 360.0 / generatedSpecies.size();
 
     for (int x = 0; x < SCR_WIDTH; x++)
@@ -61,7 +92,7 @@ void RingSpawner(std::vector<Species> &speciesList, std::vector<Species> &genera
             Species selectedSpecies;
             trailBuffer[index] = TrailPixel();
             //IF WITH IN THE CIRCLE
-            double distance = pow(raduis, 2) - pow(x - h, 2) - pow(y - k, 2);
+            double distance = pow(raduis, 2) - pow(x - k, 2) - pow(y - h, 2);
             if (distance >= 0.0)
             {
          
@@ -79,7 +110,7 @@ void RingSpawner(std::vector<Species> &speciesList, std::vector<Species> &genera
                         selectedSpecies.active_blendSize_sensorSize_speciesIndex.x = 1;
                         //set trail from species params
                         trailBuffer[index].pixelColour = selectedSpecies.trailColour;
-                        trailBuffer[index].SpeciesID_evapSpeed_blendSpeed.x = selectedSpecies.active_blendSize_sensorSize_speciesIndex.w;
+                         trailBuffer[index].SpeciesID_evapSpeed_blendSpeed.x = selectedSpecies.active_blendSize_sensorSize_speciesIndex.a;
                         trailBuffer[index].SpeciesID_evapSpeed_blendSpeed.z = selectedSpecies.evapSpeed_blendSpeed_sensOffsetDist_senseAngleSpacing.y;
                         trailBuffer[index].SpeciesID_evapSpeed_blendSpeed.y = selectedSpecies.evapSpeed_blendSpeed_sensOffsetDist_senseAngleSpacing.x;
                         //ensure species has a position
@@ -88,21 +119,14 @@ void RingSpawner(std::vector<Species> &speciesList, std::vector<Species> &genera
                     }
      
                 }
-                if (selectedSpecies.active_blendSize_sensorSize_speciesIndex.w == -1) {
-                    std::cout << "UH OH" << std::endl;
-                }
-
-
 
             }
   
-
+      
 
         
         }
     }
-
- 
 
 }
 
@@ -118,23 +142,25 @@ void CreateBuffers( GLuint AgentBuffer, int speciesCount)
     std::vector<Species> speciesList = std::vector<Species>(SCR_WIDTH * SCR_HEIGHT);
 
     srand(time(NULL));
-    std::cout << "####################################" << std::endl;
+
 
 
 
     std::vector<Species> generatedSpecies;
     for (int i = 0; i < speciesCount; i++)
     {
+        std::cout << "####################################" << std::endl;
         generatedSpecies.push_back(*factory.GenerateSpeciesType());
         //generatedSpecies[i].angle_speed_turnSpeed.y = rand() % 3 == 0 ? 0 : generatedSpecies[i].angle_speed_turnSpeed.y;
 
         std::cout << "Species[" << int(i)+1;
         std::cout << "] colour: " + glm::to_string(generatedSpecies[i].speciesColour) << std::endl;
+        std::cout << "####################################" << std::endl;
     }
     std::cout << speciesCount + " Species types"<< std::endl;
-    std::cout << "####################################" << std::endl;
 
-    RingSpawner(speciesList, generatedSpecies, trailPixels);
+
+    CheckeredSpawner(speciesList, generatedSpecies, trailPixels,5);
 
     //agents[400 * SCR_HEIGHT + 400].agentColour = glm::vec4(1, 0, 0, 1);
     //create agent buffer
@@ -186,7 +212,10 @@ int main()
 
     // glfw window creation
     // --------------------
-    GLFWwindow* window = glfwCreateWindow(SCR_WIDTH, SCR_HEIGHT, "LearnOpenGL", NULL, NULL);
+    //fullscreen
+    //GLFWwindow* window = glfwCreateWindow(SCR_WIDTH, SCR_HEIGHT, "LearnOpenGL", glfwGetPrimaryMonitor(), NULL);
+    //windowed
+    GLFWwindow* window = glfwCreateWindow(SCR_WIDTH, SCR_HEIGHT, "LearnOpenGL",NULL, NULL);
     if (window == NULL)
     {
         std::cout << "Failed to create GLFW window" << std::endl;
@@ -215,7 +244,7 @@ int main()
     GenerateVertexBuffer(&EBO, &VAO, &VBO);
     
     int speciesCount = (rand() % 2) + 1;
-    speciesCount = 1;
+    //speciesCount = 1;
     GLuint AgentBuffer = 0;
     CreateBuffers(AgentBuffer, speciesCount);
 
@@ -236,6 +265,10 @@ int main()
     float total = 0.0;
 
 
+    GLint dtPs = glGetUniformLocation(evaporateProgram, "deltaTime");
+    GLint speciesCountEC = glGetUniformLocation(evaporateProgram, "speciesCount");
+    GLint resPs = glGetUniformLocation(evaporateProgram, "resolution");
+    GLint resEC = glGetUniformLocation(evaporateProgram, "resolution");
 
     while (!glfwWindowShouldClose(window))
     {
@@ -255,11 +288,11 @@ int main()
 
 
         //evaporate trailMap
-        GLint dtEv = glGetUniformLocation(evaporateProgram, "deltaTime");
-        GLint speciesCountEV = glGetUniformLocation(evaporateProgram, "speciesCount");
+     
         glUseProgram(evaporateProgram);
-        glUniform1f(dtEv, deltaTime);
-        glUniform1i(speciesCountEV, speciesCount);
+        glUniform1f(dtPs, deltaTime);
+        glUniform1i(speciesCountEC, speciesCount);
+        glUniform2f(resEC, SCR_WIDTH, SCR_HEIGHT);
         glDispatchCompute(SCR_WIDTH, SCR_HEIGHT, 1);
         glMemoryBarrier(GL_ALL_BARRIER_BITS);
         //evaporate trailMap
@@ -269,7 +302,7 @@ int main()
         glUseProgram(computeProgram);
         //std::cout << deltaTime << std::endl;
         glUniform1f(dt, deltaTime);
-
+        glUniform2f(resPs, SCR_WIDTH, SCR_HEIGHT);
         glDispatchCompute(SCR_WIDTH, SCR_HEIGHT, 1);
         glMemoryBarrier(GL_ALL_BARRIER_BITS);
         //compute particle sim

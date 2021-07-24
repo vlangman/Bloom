@@ -66,14 +66,14 @@ public:
 	~SpeciesFactory(void) {};
 	Species * _agent;
 	 
-	//[ 0 - 150]
-	float sensorOffsetDistance = 5;
+	//[ 0 - 120]
+	float sensorOffsetDistance = 2;
 	//[ 1 - 150]
 	float sensorAngleSpacing = 25;
 	//[ 1 - 2 ]
 	int sensorSize = 1;
 	//[ 0.1 - 5]
-	float evaporationSpeed = 5;
+	float evaporationSpeed = 2;
 	//max(evaporationSpeed, [0.1 - 10])
 	float blendSpeed = 1;
 	//[ 1 - 2 ]
@@ -82,7 +82,7 @@ public:
 	//[ 5 - 120 ]
 	float turnSpeed = 25;
 	//[ 5 - 120 ]
-	float moveSpeed = 75;
+	float moveSpeed = 15;
 	float angle = rand() % 1 * 360;
 
 	glm::vec4 speciesColour = glm::vec4(0,0,0,0);
@@ -146,10 +146,10 @@ public:
 	void RandomTrailBehaviour() {
 		std::random_device rd;  //Will be used to obtain a seed for the random number engine
 		std::mt19937 gen(rd()); //Standard mersenne_twister_engine seeded with rd()
-		std::uniform_real_distribution<> dis(0, 1.0);
+		std::uniform_real_distribution<> dis(0, 2.0);
 		int index = int(dis(gen) + 1);
  		trailBehaviour.x = static_cast<TRAIL_BEHAVIOUR>(index);
-		//trailBehaviour.x = static_cast<TRAIL_BEHAVIOUR>(TRAIL_BEHAVIOUR::AVOID_ALL);
+		//trailBehaviour.x = static_cast<TRAIL_BEHAVIOUR>(TRAIL_BEHAVIOUR::FOLLOW_SELF);
   		std::cout << "Behaviour type: " + std::to_string(index) << std::endl;
 	}
 
@@ -163,6 +163,8 @@ public:
 
 
 		angle_speed_turnSpeed.y = speed;
+		//angle_speed_turnSpeed.y = this->moveSpeed;
+
 		std::cout << "MoveSpeed: " + std::to_string(speed) << std::endl;
 	}
 
@@ -173,7 +175,6 @@ public:
 		std::uniform_real_distribution<> dis(5, 100);
 		//random move speed
 		int turnSpeed = int(dis(gen) + 1);
-
 
 		angle_speed_turnSpeed.z = turnSpeed;
 		std::cout << "TurnSpeed: " + std::to_string(turnSpeed) << std::endl;
@@ -187,10 +188,15 @@ public:
 		std::random_device rd;  //Will be used to obtain a seed for the random number engine
 		std::mt19937 gen(rd()); //Standard mersenne_twister_engine seeded with rd()
 		std::uniform_real_distribution<> dis(1, 150);
-		int sensorOffsetDistance = int(dis(gen) + 1);
+		std::uniform_real_distribution<> dis2(1, 120);
+		int sensorOffsetDistance = int(dis2(gen) + 1); 
 		int sensorAngleSpacing = int(dis(gen) + 1);
 		evapSpeed_blendSpeed_sensOffsetDist_senseAngleSpacing.z = sensorOffsetDistance;
 		evapSpeed_blendSpeed_sensOffsetDist_senseAngleSpacing.a = sensorAngleSpacing;
+
+		//evapSpeed_blendSpeed_sensOffsetDist_senseAngleSpacing.z = this->sensorOffsetDistance;
+		//evapSpeed_blendSpeed_sensOffsetDist_senseAngleSpacing.a = this->sensorAngleSpacing;
+
 		std::cout << "sensorOffsetDistance: " + std::to_string(sensorOffsetDistance) << std::endl;
 		std::cout << "sensorAngleSpacing: " + std::to_string(sensorAngleSpacing) << std::endl;
 
@@ -203,9 +209,11 @@ public:
 		std::uniform_real_distribution<> dis(0, 3);
 		std::uniform_real_distribution<> disBlend(0, 10);
 		float evaporationSpeed = dis(gen);
-		float blendSpeed = disBlend(gen) ;
-		evapSpeed_blendSpeed_sensOffsetDist_senseAngleSpacing.x = evaporationSpeed;
-		evapSpeed_blendSpeed_sensOffsetDist_senseAngleSpacing.y = blendSpeed;
+		float blendSpeed = disBlend(gen);
+		//evapSpeed_blendSpeed_sensOffsetDist_senseAngleSpacing.x = evaporationSpeed;
+		//evapSpeed_blendSpeed_sensOffsetDist_senseAngleSpacing.y = blendSpeed;
+
+		evapSpeed_blendSpeed_sensOffsetDist_senseAngleSpacing.x = 0.5;
 		std::cout << "evaporationSpeed: " + std::to_string(evaporationSpeed) << std::endl;
 		std::cout << "blendSpeed: " + std::to_string(blendSpeed) << std::endl;
 
