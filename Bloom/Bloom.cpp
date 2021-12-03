@@ -1,15 +1,46 @@
 ﻿
 #include "GLShader.hpp"
 #include "string_cast.hpp"
-
+#include<windows.h>
+#include "Genetic.hpp"
 
 
 
 // settings
-const int SCR_WIDTH = 1024;
-const int SCR_HEIGHT = 1024;
+const int SCR_WIDTH = 800;
+const int SCR_HEIGHT = 800;
 
 
+
+void PixelInitializer(std::vector<Species>& speciesList, std::vector<Species>& generatedSpecies, std::vector<TrailPixel>& trailBuffer)
+{
+    for (int x = 0; x < SCR_WIDTH; x++)
+    {
+        for (int y = 0; y < SCR_HEIGHT; y++)
+        {
+
+            unsigned int index = unsigned int(x * SCR_HEIGHT + y);
+            trailBuffer[index].SpeciesID_evapSpeed_blendSpeed_speciesArrayIndex.z = -1;
+            Species selectedSpecies;
+            for (int sIndex = 0; sIndex < generatedSpecies.size(); sIndex++)
+            {
+                if (x >= sIndex * (SCR_WIDTH / generatedSpecies.size()) && x <= (sIndex + 1) * (SCR_WIDTH / generatedSpecies.size()))
+                {
+                    selectedSpecies = generatedSpecies[sIndex];
+                    selectedSpecies.active_blendSize_sensorSize_speciesIndex.x = 0;
+                    trailBuffer[index].pixelColour = selectedSpecies.trailColour;
+                    trailBuffer[index].SpeciesID_evapSpeed_blendSpeed_speciesArrayIndex.x = selectedSpecies.active_blendSize_sensorSize_speciesIndex.w;
+                    trailBuffer[index].SpeciesID_evapSpeed_blendSpeed_speciesArrayIndex.z = selectedSpecies.evapSpeed_blendSpeed_sensOffsetDist_senseAngleSpacing.y;
+                    selectedSpecies.position = glm::vec4(x, y, 0, 0);
+                    speciesList[index] = selectedSpecies;
+                }
+            }
+
+
+
+        }
+    }
+}
 
 void SquareSpawner(std::vector<Species>& speciesList, std::vector<Species>& generatedSpecies, std::vector<TrailPixel>& trailBuffer)
 {
@@ -19,7 +50,7 @@ void SquareSpawner(std::vector<Species>& speciesList, std::vector<Species>& gene
         {
 
             unsigned int index = unsigned int(x * SCR_HEIGHT + y);
-            trailBuffer[index].SpeciesID_evapSpeed_blendSpeed.z = -1;
+            trailBuffer[index].SpeciesID_evapSpeed_blendSpeed_speciesArrayIndex.z = -1;
             Species selectedSpecies;
             for (int sIndex = 0; sIndex < generatedSpecies.size(); sIndex++)
             {
@@ -28,15 +59,13 @@ void SquareSpawner(std::vector<Species>& speciesList, std::vector<Species>& gene
                     selectedSpecies = generatedSpecies[sIndex];
                     selectedSpecies.active_blendSize_sensorSize_speciesIndex.x = true;
                     trailBuffer[index].pixelColour = selectedSpecies.trailColour;
-                    trailBuffer[index].SpeciesID_evapSpeed_blendSpeed.x = selectedSpecies.active_blendSize_sensorSize_speciesIndex.w;
-                    trailBuffer[index].SpeciesID_evapSpeed_blendSpeed.z = selectedSpecies.evapSpeed_blendSpeed_sensOffsetDist_senseAngleSpacing.y;
+                    trailBuffer[index].SpeciesID_evapSpeed_blendSpeed_speciesArrayIndex.x = selectedSpecies.active_blendSize_sensorSize_speciesIndex.w;
+                    trailBuffer[index].SpeciesID_evapSpeed_blendSpeed_speciesArrayIndex.z = selectedSpecies.evapSpeed_blendSpeed_sensOffsetDist_senseAngleSpacing.y;
                     selectedSpecies.position = glm::vec4(x, y, 0, 0);
                     speciesList[index] = selectedSpecies;
                 }
             }
-
-
-
+   
         }
     }
 
@@ -52,7 +81,7 @@ void CheckeredSpawner(std::vector<Species>& speciesList, std::vector<Species>& g
             if (x % offset == 0 && y % offset == 0)
             {
                 unsigned int index = unsigned int(x * SCR_HEIGHT + y);
-                trailBuffer[index].SpeciesID_evapSpeed_blendSpeed.z = -1;
+                trailBuffer[index].SpeciesID_evapSpeed_blendSpeed_speciesArrayIndex.z = -1;
                 Species selectedSpecies;
                 for (int sIndex = 0; sIndex < generatedSpecies.size(); sIndex++)
                 {
@@ -60,9 +89,11 @@ void CheckeredSpawner(std::vector<Species>& speciesList, std::vector<Species>& g
                     {
                         selectedSpecies = generatedSpecies[sIndex];
                         selectedSpecies.active_blendSize_sensorSize_speciesIndex.x = true;
+                     
+
                         trailBuffer[index].pixelColour = selectedSpecies.trailColour;
-                        trailBuffer[index].SpeciesID_evapSpeed_blendSpeed.x = selectedSpecies.active_blendSize_sensorSize_speciesIndex.w;
-                        trailBuffer[index].SpeciesID_evapSpeed_blendSpeed.z = selectedSpecies.evapSpeed_blendSpeed_sensOffsetDist_senseAngleSpacing.y;
+                        trailBuffer[index].SpeciesID_evapSpeed_blendSpeed_speciesArrayIndex.x = selectedSpecies.active_blendSize_sensorSize_speciesIndex.w;
+                        trailBuffer[index].SpeciesID_evapSpeed_blendSpeed_speciesArrayIndex.z = selectedSpecies.evapSpeed_blendSpeed_sensOffsetDist_senseAngleSpacing.y;
                         selectedSpecies.position = glm::vec4(x, y, 0, 0);
                         speciesList[index] = selectedSpecies;
                     }
@@ -76,7 +107,7 @@ void CheckeredSpawner(std::vector<Species>& speciesList, std::vector<Species>& g
 
 void RingSpawner(std::vector<Species> &speciesList, std::vector<Species> &generatedSpecies, std::vector<TrailPixel> &trailBuffer )
 {
-    float raduis = 50;
+    float raduis = 250;
     float h = SCR_HEIGHT / 2.0;
     float k = SCR_WIDTH / 2.0;
     int angleOffset = 360.0 / generatedSpecies.size();
@@ -97,22 +128,28 @@ void RingSpawner(std::vector<Species> &speciesList, std::vector<Species> &genera
             {
          
                 for (int sIndex = 0; sIndex < generatedSpecies.size(); sIndex++)
-                {
-                    int angleToPoint = abs(atan2(y - h, x - k) * 180.0 / 3.141592654);
-                    //if y < h angle becomes negative
-                    if (y < h)
-                        angleToPoint = angleToPoint+180;
+                {            
+                    //float angleToPoint = 4.71239;
+                    float angleToPoint =  (atan2(h - y, k - x));
+                    
+                    //if y > h angle becomes negative
+                    if (y > h)
+                        angleToPoint = angleToPoint+ 2 * 3.141592654;
 
+          
                     if (angleToPoint >= (sIndex * angleOffset) && angleToPoint <= ((sIndex + 1) * angleOffset))
                     {
                         selectedSpecies = generatedSpecies[sIndex];
+                        //selectedSpecies.evapSpeed_blendSpeed_sensOffsetDist_senseAngleSpacing.x = 0.01;
                         //activate species
                         selectedSpecies.active_blendSize_sensorSize_speciesIndex.x = 1;
+                        selectedSpecies.angle_speed_turnSpeed.x = angleToPoint;
+                        selectedSpecies.uniqueIndex.x = index;
                         //set trail from species params
                         trailBuffer[index].pixelColour = selectedSpecies.trailColour;
-                         trailBuffer[index].SpeciesID_evapSpeed_blendSpeed.x = selectedSpecies.active_blendSize_sensorSize_speciesIndex.a;
-                        trailBuffer[index].SpeciesID_evapSpeed_blendSpeed.z = selectedSpecies.evapSpeed_blendSpeed_sensOffsetDist_senseAngleSpacing.y;
-                        trailBuffer[index].SpeciesID_evapSpeed_blendSpeed.y = selectedSpecies.evapSpeed_blendSpeed_sensOffsetDist_senseAngleSpacing.x;
+                         trailBuffer[index].SpeciesID_evapSpeed_blendSpeed_speciesArrayIndex.x = selectedSpecies.active_blendSize_sensorSize_speciesIndex.a;
+                        trailBuffer[index].SpeciesID_evapSpeed_blendSpeed_speciesArrayIndex.z = selectedSpecies.evapSpeed_blendSpeed_sensOffsetDist_senseAngleSpacing.y;
+                        trailBuffer[index].SpeciesID_evapSpeed_blendSpeed_speciesArrayIndex.y = selectedSpecies.evapSpeed_blendSpeed_sensOffsetDist_senseAngleSpacing.x;
                         //ensure species has a position
                         selectedSpecies.position = glm::vec4(x, y, 0, 0);
                         speciesList[index] = selectedSpecies;
@@ -121,25 +158,91 @@ void RingSpawner(std::vector<Species> &speciesList, std::vector<Species> &genera
                 }
 
             }
-  
-      
-
+ 
         
         }
     }
 
 }
 
+void ConwaySpawner(std::vector<Species>& speciesList, std::vector<Species>& generatedSpecies, std::vector<TrailPixel>& trailBuffer) {
 
-void CreateBuffers( GLuint AgentBuffer, int speciesCount)
+    float h = SCR_HEIGHT / 2.0;
+    float k = SCR_WIDTH / 2.0;
+    unsigned int index = h * SCR_WIDTH + k;
+    Species selectedSpecies = generatedSpecies[0];
+
+    //no move speed 4 game of life
+    selectedSpecies.angle_speed_turnSpeed.y = 10;
+    selectedSpecies.evapSpeed_blendSpeed_sensOffsetDist_senseAngleSpacing.w = 45;
+    selectedSpecies.evapSpeed_blendSpeed_sensOffsetDist_senseAngleSpacing.z = 50;
+    selectedSpecies.speciesColour = glm::vec4(1);
+    selectedSpecies.trailColour = glm::vec4(1);
+
+    //activate species
+    selectedSpecies.active_blendSize_sensorSize_speciesIndex.x = true;
+
+
+    //PixelInitializer(speciesList, generatedSpecies, trailBuffer);
+
+
+   //center
+    selectedSpecies.position = glm::vec4(k, h, 0, 0);
+    speciesList[index] = selectedSpecies;
+
+    trailBuffer[index].pixelColour = selectedSpecies.trailColour;
+    trailBuffer[index].SpeciesID_evapSpeed_blendSpeed_speciesArrayIndex.x = selectedSpecies.active_blendSize_sensorSize_speciesIndex.a;
+    trailBuffer[index].SpeciesID_evapSpeed_blendSpeed_speciesArrayIndex.z = selectedSpecies.evapSpeed_blendSpeed_sensOffsetDist_senseAngleSpacing.y;
+    trailBuffer[index].SpeciesID_evapSpeed_blendSpeed_speciesArrayIndex.y = selectedSpecies.evapSpeed_blendSpeed_sensOffsetDist_senseAngleSpacing.x;
+    trailBuffer[index].activeCount++;
+    ////1 up 
+    //index = (h+1) * SCR_WIDTH + (k);
+    //selectedSpecies.position = glm::vec4(k, h+1, 0, 0);
+    //speciesList[index] = selectedSpecies;
+    //trailBuffer[index].pixelColour = selectedSpecies.trailColour;
+    //trailBuffer[index].SpeciesID_evapSpeed_blendSpeed_speciesArrayIndex.x = selectedSpecies.active_blendSize_sensorSize_speciesIndex.a;
+    //trailBuffer[index].SpeciesID_evapSpeed_blendSpeed_speciesArrayIndex.z = selectedSpecies.evapSpeed_blendSpeed_sensOffsetDist_senseAngleSpacing.y;
+    //trailBuffer[index].SpeciesID_evapSpeed_blendSpeed_speciesArrayIndex.y = selectedSpecies.evapSpeed_blendSpeed_sensOffsetDist_senseAngleSpacing.x;
+    //trailBuffer[index].activeCount++;
+
+    ////1 up 1 right
+    //index = (h + 1) * SCR_WIDTH + (k+1);
+    //selectedSpecies.position = glm::vec4(k+1, h + 1, 0, 0);
+    //speciesList[index] = selectedSpecies;
+    //trailBuffer[index].pixelColour = selectedSpecies.trailColour;
+    //trailBuffer[index].SpeciesID_evapSpeed_blendSpeed_speciesArrayIndex.x = selectedSpecies.active_blendSize_sensorSize_speciesIndex.a;
+    //trailBuffer[index].SpeciesID_evapSpeed_blendSpeed_speciesArrayIndex.z = selectedSpecies.evapSpeed_blendSpeed_sensOffsetDist_senseAngleSpacing.y;
+    //trailBuffer[index].SpeciesID_evapSpeed_blendSpeed_speciesArrayIndex.y = selectedSpecies.evapSpeed_blendSpeed_sensOffsetDist_senseAngleSpacing.x;
+    //trailBuffer[index].activeCount++;
+
+    //// right
+    //index = (h) * SCR_WIDTH + (k + 1);
+    //selectedSpecies.position = glm::vec4(k + 1, h , 0, 0);
+    //speciesList[index] = selectedSpecies;
+    //trailBuffer[index].pixelColour = selectedSpecies.trailColour;
+    //trailBuffer[index].SpeciesID_evapSpeed_blendSpeed_speciesArrayIndex.x = selectedSpecies.active_blendSize_sensorSize_speciesIndex.a;
+    //trailBuffer[index].SpeciesID_evapSpeed_blendSpeed_speciesArrayIndex.z = selectedSpecies.evapSpeed_blendSpeed_sensOffsetDist_senseAngleSpacing.y;
+    //trailBuffer[index].SpeciesID_evapSpeed_blendSpeed_speciesArrayIndex.y = selectedSpecies.evapSpeed_blendSpeed_sensOffsetDist_senseAngleSpacing.x;
+    //trailBuffer[index].activeCount++;
+    //// 1 left
+    //index = h * SCR_WIDTH + (k - 1);
+    //selectedSpecies.position = glm::vec4(k -1, h, 0, 0);
+    //speciesList[index] = selectedSpecies;
+    //trailBuffer[index].pixelColour = selectedSpecies.trailColour;
+    //trailBuffer[index].SpeciesID_evapSpeed_blendSpeed_speciesArrayIndex.x = selectedSpecies.active_blendSize_sensorSize_speciesIndex.a;
+    //trailBuffer[index].SpeciesID_evapSpeed_blendSpeed_speciesArrayIndex.z = selectedSpecies.evapSpeed_blendSpeed_sensOffsetDist_senseAngleSpacing.y;
+    //trailBuffer[index].SpeciesID_evapSpeed_blendSpeed_speciesArrayIndex.y = selectedSpecies.evapSpeed_blendSpeed_sensOffsetDist_senseAngleSpacing.x;
+    //trailBuffer[index].activeCount++;
+}
+
+
+void CreateBuffers(std::vector<Species> &speciesList ,GLuint AgentBuffer, int speciesCount)
 {
     //the number by which to skip when initializing agents
 
-
-
     SpeciesFactory factory = SpeciesFactory();
     std::vector<TrailPixel> trailPixels = std::vector <TrailPixel>(SCR_WIDTH * SCR_HEIGHT);
-    std::vector<Species> speciesList = std::vector<Species>(SCR_WIDTH * SCR_HEIGHT);
+
 
     srand(time(NULL));
 
@@ -160,7 +263,7 @@ void CreateBuffers( GLuint AgentBuffer, int speciesCount)
     std::cout << speciesCount + " Species types"<< std::endl;
 
 
-    CheckeredSpawner(speciesList, generatedSpecies, trailPixels,5);
+    RingSpawner(speciesList, generatedSpecies, trailPixels);
 
     //agents[400 * SCR_HEIGHT + 400].agentColour = glm::vec4(1, 0, 0, 1);
     //create agent buffer
@@ -173,7 +276,7 @@ void CreateBuffers( GLuint AgentBuffer, int speciesCount)
     // now copy data into memory
     memcpy(agentWritePtr, &speciesList, sizeof(speciesList));
     // make sure to tell OpenGL we're done with the pointer
-    //glUnmapBuffer(GL_SHADER_STORAGE_BUFFER);
+    glUnmapBuffer(GL_SHADER_STORAGE_BUFFER);
 
     glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 3, AgentBuffer);
     glBindBuffer(GL_SHADER_STORAGE_BUFFER, 3);
@@ -188,7 +291,7 @@ void CreateBuffers( GLuint AgentBuffer, int speciesCount)
     // now copy data into memory
     memcpy(agentWritePtr, &trailPixels, sizeof(trailPixels));
     // make sure to tell OpenGL we're done with the pointer
-    //glUnmapBuffer(GL_SHADER_STORAGE_BUFFER);
+    glUnmapBuffer(GL_SHADER_STORAGE_BUFFER);
 
     glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 4, trailBuffer);
     glBindBuffer(GL_SHADER_STORAGE_BUFFER, 4);
@@ -205,138 +308,191 @@ int main()
     glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 6);
     glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
     
-
+    loadPerformanceDebug();
 #ifdef __APPLE__
     glfwWindowHint(GLFW_OPENGL_FORWARD_COMPAT, GL_TRUE);
 #endif
+
+
+    GeneticFactory geneFactory;
+    geneFactory.GenerateNeuron();
+
 
     // glfw window creation
     // --------------------
     //fullscreen
     //GLFWwindow* window = glfwCreateWindow(SCR_WIDTH, SCR_HEIGHT, "LearnOpenGL", glfwGetPrimaryMonitor(), NULL);
     //windowed
-    GLFWwindow* window = glfwCreateWindow(SCR_WIDTH, SCR_HEIGHT, "LearnOpenGL",NULL, NULL);
-    if (window == NULL)
-    {
-        std::cout << "Failed to create GLFW window" << std::endl;
-        glfwTerminate();
-        return -1;
-    }
-    glfwMakeContextCurrent(window);
-    glfwSetFramebufferSizeCallback(window, framebuffer_size_callback);
+    //GLFWwindow* window = glfwCreateWindow(SCR_WIDTH, SCR_HEIGHT, "LearnOpenGL",NULL, NULL);
+    //if (window == NULL)
+    //{
+    //    std::cout << "Failed to create GLFW window" << std::endl;
+    //    glfwTerminate();
+    //    return -1;
+    //}
+    //glfwMakeContextCurrent(window);
+    //glfwSetFramebufferSizeCallback(window, framebuffer_size_callback);
 
-    // glad: load all OpenGL function pointers
-    // ---------------------------------------
-    if (!gladLoadGLLoader((GLADloadproc)glfwGetProcAddress))
-    {
-        std::cout << "Failed to initialize GLAD" << std::endl;
-        return -1;
-    }
+    //// glad: load all OpenGL function pointers
+    //// ---------------------------------------
+    //if (!gladLoadGLLoader((GLADloadproc)glfwGetProcAddress))
+    //{
+    //    std::cout << "Failed to initialize GLAD" << std::endl;
+    //    return -1;
+    //}
 
-    
+    //
 
-    GLuint shaderProgram = LoadShader("C:\\Users\\Vaughan\\Documents\\NFTART\\Bloom\\CPP\\Bloom\\fragment.frag", "C:\\Users\\Vaughan\\Documents\\NFTART\\Bloom\\CPP\\Bloom\\vert.vert");
-    GLuint computeProgram = LoadComputeShader("C:\\Users\\Vaughan\\Documents\\NFTART\\Bloom\\CPP\\Bloom\\PixelShader.glsl");
-    GLuint evaporateProgram = LoadEvaporateComputeShader("C:\\Users\\Vaughan\\Documents\\NFTART\\Bloom\\CPP\\Bloom\\EvaporateCompute.glsl");
-
-
-    unsigned int EBO = 0, VAO = 0, VBO = 0;
-    GenerateVertexBuffer(&EBO, &VAO, &VBO);
-    
-    int speciesCount = (rand() % 2) + 1;
-    //speciesCount = 1;
-    GLuint AgentBuffer = 0;
-    CreateBuffers(AgentBuffer, speciesCount);
+    //GLuint shaderProgram = LoadShader("C:\\Users\\Vaughan\\Documents\\NFTART\\Bloom\\CPP\\Bloom\\fragment.frag", "C:\\Users\\Vaughan\\Documents\\NFTART\\Bloom\\CPP\\Bloom\\vert.vert");
+    //GLuint computeProgram = LoadComputeShader("C:\\Users\\Vaughan\\Documents\\NFTART\\Bloom\\CPP\\Bloom\\PixelShader.glsl");
+    //GLuint evaporateProgram = LoadEvaporateComputeShader("C:\\Users\\Vaughan\\Documents\\NFTART\\Bloom\\CPP\\Bloom\\EvaporateCompute.glsl");
 
 
-    //Gen a texture for compute shader to write into 
-    GLuint outputTexture = GenerateTexture((int)SCR_HEIGHT, (int)SCR_WIDTH);
+    //unsigned int EBO = 0, VAO = 0, VBO = 0;
+    //GenerateVertexBuffer(&EBO, &VAO, &VBO);
+    //
+    //srand(glfwGetTime());
+    //int speciesCount = (rand() % 3) + 1;
+    ////speciesCount = 1;
+    //GLuint AgentBuffer = 0;
+    //std::vector<Species> speciesList = std::vector<Species>(SCR_WIDTH * SCR_HEIGHT);
+    //CreateBuffers(speciesList,AgentBuffer, speciesCount);
+
+
+    ////Gen a texture for compute shader to write into 
+    //GLuint outputTexture = GenerateTexture((int)SCR_HEIGHT, (int)SCR_WIDTH);
   
    
-    // uncomment this call to draw in wireframe polygons.
-    //glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
-    glEnable(GL_BLEND);
-    
-    glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC1_ALPHA);
-    // render loop
-    // -----------
+    //// uncomment this call to draw in wireframe polygons.
+    ////glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
+    //glEnable(GL_BLEND);
+    //
+    //glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC1_ALPHA);
+    //// render loop
+    //// -----------
 
-    float deltaTime = glfwGetTime();
-    float total = 0.0;
+    //glfwMakeContextCurrent(window);
+    //glfwSwapInterval(0);
+    //float deltaTime = glfwGetTime();
+    //float total = 0.0;
 
 
-    GLint dtPs = glGetUniformLocation(evaporateProgram, "deltaTime");
-    GLint speciesCountEC = glGetUniformLocation(evaporateProgram, "speciesCount");
-    GLint resPs = glGetUniformLocation(evaporateProgram, "resolution");
-    GLint resEC = glGetUniformLocation(evaporateProgram, "resolution");
-
-    while (!glfwWindowShouldClose(window))
-    {
-
-        // input
-        // -----
-        processInput(window);
-
-        glClearColor(1,1,1,1);
-        glClear(GL_COLOR_BUFFER_BIT);
+    //GLint dtPs = glGetUniformLocation(evaporateProgram, "deltaTime");
+    //GLint speciesCountEC = glGetUniformLocation(evaporateProgram, "speciesCount");
+    //GLint resPs = glGetUniformLocation(evaporateProgram, "resolution");
+    //GLint resEC = glGetUniformLocation(evaporateProgram, "resolution");
 
 
 
-   
-        deltaTime = (glfwGetTime() - total);
-        total += deltaTime;
+    //double lastTime = glfwGetTime() , particleComputeTime = glfwGetTime() , evapComputeTime = glfwGetTime(), shaderTime = glfwGetTime();
+    //int nbFrames = 0;
 
 
-        //evaporate trailMap
-     
-        glUseProgram(evaporateProgram);
-        glUniform1f(dtPs, deltaTime);
-        glUniform1i(speciesCountEC, speciesCount);
-        glUniform2f(resEC, SCR_WIDTH, SCR_HEIGHT);
-        glDispatchCompute(SCR_WIDTH, SCR_HEIGHT, 1);
-        glMemoryBarrier(GL_ALL_BARRIER_BITS);
-        //evaporate trailMap
+    //while (!glfwWindowShouldClose(window))
+    //{
+    //    //Sleep(2000);
+    //    // input
+    //    // -----
+    //    processInput(window);
 
-        GLint dt = glGetUniformLocation(computeProgram, "deltaTime");
-        //compute particle sim
-        glUseProgram(computeProgram);
-        //std::cout << deltaTime << std::endl;
-        glUniform1f(dt, deltaTime);
-        glUniform2f(resPs, SCR_WIDTH, SCR_HEIGHT);
-        glDispatchCompute(SCR_WIDTH, SCR_HEIGHT, 1);
-        glMemoryBarrier(GL_ALL_BARRIER_BITS);
-        //compute particle sim
+    //    glClearColor(1,1,1,1);
+    //    glClear(GL_COLOR_BUFFER_BIT);
+    //    //int active = 0;
 
 
+    //    //for (size_t i = 0; i < SCR_WIDTH; i++)
+    //    //{
+    //    //    for (size_t j = 0; j < SCR_HEIGHT; j++)
+    //    //    {
+    //    //        if (speciesList[j * SCR_WIDTH + i].active_blendSize_sensorSize_speciesIndex.x == 1)
+    //    //        {
+    //    //            speciesList[j * SCR_WIDTH + i].speciesColour = glm::vec4(1, 0, 1, 1);
+    //    //            active += speciesList[j * SCR_WIDTH + i].position.x;
+    //    //        }
+    //    //    }
+    //    //}
 
-        //use the shader program before draw
-        glUseProgram(shaderProgram);
-        //bind texture
+    //    //std::cout << active << std::endl;
 
-        //draw vertex array
-        glBindVertexArray(VAO);
-        glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0);
 
-        // glfw: swap buffers and poll IO events (keys pressed/released, mouse moved etc.)
-        // -------------------------------------------------------------------------------
-        auto err = glGetError();
-        if(err != 0)
-        std::cout << err << std::endl; // returns 0 (no error)
 
-        glfwSwapBuffers(window);
-        glfwPollEvents();
-    }
 
-    // optional: de-allocate all resources once they've outlived their purpose:
-    // ------------------------------------------------------------------------
-    glDeleteVertexArrays(1, &VAO);
-    glDeleteBuffers(1, &VBO);
-    glDeleteTextures(1, &outputTexture);
-    glDeleteProgram(shaderProgram);
 
-    // glfw: terminate, clearing all previously allocated GLFW resources.
-    // ------------------------------------------------------------------
-    glfwTerminate();
+    //    // Measure speed
+    //    double currentTime = glfwGetTime();
+    //    double fps = 1.0 / (shaderTime + particleComputeTime + evapComputeTime);
+    //    nbFrames++;
+
+    //    if (currentTime - lastTime >= 1.0) { // If last prinf() was more than 1 sec ago
+    //        // printf and reset timer
+    //        printf("%f frame/s, evapComp: %f , particleSim: %f , shaderTime: %f, fps: %f\n",  double(nbFrames), evapComputeTime, particleComputeTime, shaderTime, fps);
+    //        nbFrames = 0;
+    //        lastTime += 1.0;
+    //        evapComputeTime = 0.0;
+    //        particleComputeTime = 0.0;
+    //        shaderTime = 0.0;
+    //    }
+
+
+
+    //    deltaTime = (glfwGetTime() - total);
+    //    total += deltaTime;
+
+    //    //evaporate trailMap
+    // 
+    //    glUseProgram(evaporateProgram);
+    //    glUniform1f(dtPs, deltaTime);
+    //    glUniform1i(speciesCountEC, speciesCount);
+    //    glUniform2f(resEC, SCR_WIDTH, SCR_HEIGHT);
+    //    glDispatchCompute(SCR_WIDTH, SCR_HEIGHT, 1);
+    //    glMemoryBarrier(GL_ALL_BARRIER_BITS);
+    //    //evaporate trailMap
+
+    //    evapComputeTime = glfwGetTime() - total;
+
+    //    GLint dt = glGetUniformLocation(computeProgram, "deltaTime");
+    //    //compute particle sim
+    //    glUseProgram(computeProgram);
+    //    //std::cout << deltaTime << std::endl;
+    //    glUniform1f(dt, deltaTime);
+    //    glUniform2f(resPs, SCR_WIDTH, SCR_HEIGHT);
+    //    glDispatchCompute(SCR_WIDTH, SCR_HEIGHT, 1);
+    //    glMemoryBarrier(GL_ALL_BARRIER_BITS);
+    //    //compute particle sim
+    //    particleComputeTime = glfwGetTime() - (total+ evapComputeTime);
+
+    //    //use the shader program before draw
+    //    glUseProgram(shaderProgram);
+    //    //bind texture
+
+    //    //draw vertex array
+    //    glBindVertexArray(VAO);
+    //    glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0);
+
+
+
+    //    // glfw: swap buffers and poll IO events (keys pressed/released, mouse moved etc.)
+    //    // -------------------------------------------------------------------------------
+    //    auto err = glGetError();
+    //    if(err != 0)
+    //    std::cout << err << std::endl; // returns 0 (no error)
+
+    //    glfwSwapBuffers(window);
+    //    glfwPollEvents();
+    //    shaderTime = glfwGetTime() - (total + particleComputeTime);
+
+    //}
+
+    //// optional: de-allocate all resources once they've outlived their purpose:
+    //// ------------------------------------------------------------------------
+    //glDeleteVertexArrays(1, &VAO);
+    //glDeleteBuffers(1, &VBO);
+    //glDeleteTextures(1, &outputTexture);
+    //glDeleteProgram(shaderProgram);
+
+    //// glfw: terminate, clearing all previously allocated GLFW resources.
+    //// ------------------------------------------------------------------
+    //glfwTerminate();
     return 0;
 }
 

@@ -12,13 +12,21 @@ struct Species {
     vec4 angle_speed_turnSpeed;
     ivec4 active_blendSize_sensorSize_speciesIndex;
     vec4 evapSpeed_blendSpeed_sensOffsetDist_senseAngleSpacing;
-    vec4 trailBehaviour;
+    vec4 trailBehaviour_spawnChance;
+    vec4 uniqueIndex;
 };
 
 struct TrailPixel {
 	vec4 pixelColour;
     vec4 SpeciesID_evapSpeed_blendSpeed;
+    vec4 activeCount;
 };
+
+layout( std430 , binding = 3 ) volatile buffer speciesBuffer
+{
+    Species species[];
+} species_in;
+
 
 layout( std430 , binding = 4 ) volatile buffer trailBuffer
 {
@@ -26,21 +34,36 @@ layout( std430 , binding = 4 ) volatile buffer trailBuffer
 } trail_buffer;
 
 
+float hashFunc(float stateIN)
+{
+    uint state = uint(stateIN);
+	state ^= 2747636419;
+	state *= 2654435769;
+	state ^= state >> 16;
+	state *= 2654435769;
+	state ^= state >> 16;
+	return state / 4294967295.0;
+}
+
 void EvaporatePixel(ivec2 pixel_coords){
 
-    uint index = uint(pixel_coords.y * resolution.x + pixel_coords.x);
+    uint index = uint(gl_GlobalInvocationID.y * resolution.x + gl_GlobalInvocationID.x); 
     vec4 sampleColour = trail_buffer.trailpixels[index].pixelColour;
     barrier();
     // we now need to blur this pixel by surroundings
     vec4 sum  = vec4(0,0,0,0);
     int samples = 0;
-
+    //exclude self
+    int surroundingCount = 0;
     int blendSize = 1;
     int[] idArr = int[](speciesCount);
+
     //blend speed
     float averageBlendSpeed = 0;
 
-    //evap speed
+    Species current = species_in.species[index];
+
+
      
     for(int offsetX =-blendSize; offsetX <= blendSize; offsetX++)
     {
@@ -51,8 +74,10 @@ void EvaporatePixel(ivec2 pixel_coords){
 
             if(sampleX >= 0 && sampleX < resolution.x && sampleY >= 0 && sampleY < resolution.y )
             {
-
                 uint sampleIndex = uint(sampleY * resolution.x + sampleX);
+//                if(species_in.species[sampleIndex].active_blendSize_sensorSize_speciesIndex.a == current.active_blendSize_sensorSize_speciesIndex.a)
+                if(index != sampleIndex)
+                    surroundingCount += int(trail_buffer.trailpixels[sampleIndex].activeCount.x);
                 sum += trail_buffer.trailpixels[sampleIndex].pixelColour;
                 averageBlendSpeed += trail_buffer.trailpixels[sampleIndex].SpeciesID_evapSpeed_blendSpeed.z;
                 samples++;
@@ -64,13 +89,15 @@ void EvaporatePixel(ivec2 pixel_coords){
        }
 
     }
-
-    int idMax = 0;
-    for(int i ; i < idArr.length(); i++)
-    {
-         if(idArr[i] < idMax)
-            idMax = idArr[i];
-    }
+//    barrier();
+  
+        
+//    int idMax = 0;
+//    for(int i ; i < idArr.length(); i++)
+//    {
+//         if(idArr[i] < idMax)
+//            idMax = idArr[i];
+//    }
 
 //    average blur colour;
     vec4 blurResult = sum/samples;
@@ -90,16 +117,19 @@ void EvaporatePixel(ivec2 pixel_coords){
     trail_buffer.trailpixels[index].pixelColour = sampleColour;
     
     //set ID to the most present speciesID of sample size
-    if(sampleColour.a > 0.01)
-        trail_buffer.trailpixels[index].SpeciesID_evapSpeed_blendSpeed.x = trail_buffer.trailpixels[index].SpeciesID_evapSpeed_blendSpeed.x;
-    else
+    if(sampleColour.a < 0.05)
+    {
+      trail_buffer.trailpixels[index].pixelColour = vec4(0);
 //    remove species ID when too dim
         trail_buffer.trailpixels[index].SpeciesID_evapSpeed_blendSpeed.x = -1;
+    }
+    //clear trail pixels for next run
 
 
     barrier();
+
       //output trailmap
-    imageStore(img_output, pixel_coords, sampleColour );
+   imageStore(img_output, pixel_coords, sampleColour );
 }
 
 

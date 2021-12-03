@@ -10,17 +10,20 @@
 struct TrailPixel {
 	TrailPixel() {
 		pixelColour = glm::vec4(0, 0, 0, 0);
-		SpeciesID_evapSpeed_blendSpeed = glm::vec4(-1, 0, 0, 0);
+		SpeciesID_evapSpeed_blendSpeed_speciesArrayIndex = glm::vec4(-1, 0, 0, 0);
+		activeCount = glm::vec4(0,0,0,0);
 	}
 
 	glm::vec4 pixelColour;
-	glm::vec4 SpeciesID_evapSpeed_blendSpeed;
+	glm::vec4 SpeciesID_evapSpeed_blendSpeed_speciesArrayIndex;
+	glm::vec4 activeCount;
 };
 
 struct Species {
 	Species() {
 		evapSpeed_blendSpeed_sensOffsetDist_senseAngleSpacing = glm::vec4(0,0,0,0);
 		active_blendSize_sensorSize_speciesIndex = glm::vec4(0, 0, 1, -1);
+		uniqueIndex = glm::vec4(-1);
 	};
 	Species(
 		glm::vec4 s_Colour,
@@ -29,7 +32,8 @@ struct Species {
 		glm::vec4 s_angle_speed_turnSpeed,
 		glm::ivec4 s_active_blendSize_sensorSize_speciesID,
 		glm::vec4 s_evapSpeed_blendSpeed_sensOffsetDist_senseAngleSpacing,
-		glm::vec4 s_trailBehaviour
+		glm::vec4 s_trailBehaviour_spawnChance
+
 	) {
 		position = s_position;
 		speciesColour = s_Colour;
@@ -37,7 +41,7 @@ struct Species {
 		active_blendSize_sensorSize_speciesIndex = s_active_blendSize_sensorSize_speciesID;
 		evapSpeed_blendSpeed_sensOffsetDist_senseAngleSpacing = s_evapSpeed_blendSpeed_sensOffsetDist_senseAngleSpacing;
 		angle_speed_turnSpeed = s_angle_speed_turnSpeed;
-		trailBehaviour = s_trailBehaviour; 
+		trailBehaviour_spawnChance = s_trailBehaviour_spawnChance; 
     }
 		glm::vec4 speciesColour;
 		glm::vec4 trailColour;
@@ -45,7 +49,8 @@ struct Species {
 		glm::vec4 angle_speed_turnSpeed;
 		glm::ivec4 active_blendSize_sensorSize_speciesIndex;
 		glm::vec4 evapSpeed_blendSpeed_sensOffsetDist_senseAngleSpacing;
-		glm::vec4 trailBehaviour;
+		glm::vec4 trailBehaviour_spawnChance;
+		glm::vec4 uniqueIndex;
 };
 
 
@@ -79,9 +84,11 @@ public:
 	//[ 1 - 2 ]
 	int blendSize = 1;
 
+	float spawnChance = 0.5;
+
 	//[ 5 - 120 ]
 	float turnSpeed = 25;
-	//[ 5 - 120 ]
+	//[ 5 - 75 ]
 	float moveSpeed = 15;
 	float angle = rand() % 1 * 360;
 
@@ -91,21 +98,20 @@ public:
 	glm::vec4 angle_speed_turnSpeed = glm::vec4(angle,moveSpeed,turnSpeed,0);
 	glm::ivec4 active_blendSize_sensorSize_speciesIndex = glm::ivec4(0,blendSize,sensorSize, 0);
 	glm::vec4 evapSpeed_blendSpeed_sensOffsetDist_senseAngleSpacing = glm::vec4(evaporationSpeed, blendSpeed, sensorOffsetDistance, sensorAngleSpacing);
-	glm::vec4 trailBehaviour = glm::vec4(0, 0, 0, 0);
-
-
+	glm::vec4 trailBehaviour_spawnChance = glm::vec4(0, spawnChance, 0, 0);
 
 	Species * GenerateSpeciesType() {
 
 
 		RandomizeSpeciesColour();
-		RandomTrailBehaviour(); 
+		RandomtrailBehaviour_spawnChance(); 
 		RandomizeAngle();
 		RandomMoveSpeed();
 		RandomTurnSpeed();
 		RandomSensorParams(); 
 		RandomTrailParams();
 		//RandomStationary();
+		
 		_agent = new Species(
 			speciesColour,
 			trailColour,
@@ -113,12 +119,16 @@ public:
 			angle_speed_turnSpeed,
 			active_blendSize_sensorSize_speciesIndex,
 			evapSpeed_blendSpeed_sensOffsetDist_senseAngleSpacing,
-			trailBehaviour
+			trailBehaviour_spawnChance
 		);
 		//increment the species index
 		active_blendSize_sensorSize_speciesIndex.w++;
 		return _agent;
 	}
+
+
+
+	
 
 	void RandomizeAngle()
 	{
@@ -143,13 +153,13 @@ public:
 		trailColour = speciesColour;
 	}
 	
-	void RandomTrailBehaviour() {
+	void RandomtrailBehaviour_spawnChance() {
 		std::random_device rd;  //Will be used to obtain a seed for the random number engine
 		std::mt19937 gen(rd()); //Standard mersenne_twister_engine seeded with rd()
 		std::uniform_real_distribution<> dis(0, 2.0);
 		int index = int(dis(gen) + 1);
- 		trailBehaviour.x = static_cast<TRAIL_BEHAVIOUR>(index);
-		//trailBehaviour.x = static_cast<TRAIL_BEHAVIOUR>(TRAIL_BEHAVIOUR::FOLLOW_SELF);
+ 		trailBehaviour_spawnChance.x = static_cast<TRAIL_BEHAVIOUR>(index);
+		//trailBehaviour_spawnChance.x = static_cast<TRAIL_BEHAVIOUR>(TRAIL_BEHAVIOUR::FOLLOW_SELF);
   		std::cout << "Behaviour type: " + std::to_string(index) << std::endl;
 	}
 
@@ -157,15 +167,15 @@ public:
 	{
 		std::random_device rd;  //Will be used to obtain a seed for the random number engine
 		std::mt19937 gen(rd()); //Standard mersenne_twister_engine seeded with rd()
-		std::uniform_real_distribution<> dis(6, 85);
+		std::uniform_real_distribution<> dis(6, 75);
 		//random move speed
 		int speed = int(dis(gen) + 1);
 
 
-		angle_speed_turnSpeed.y = speed;
-		//angle_speed_turnSpeed.y = this->moveSpeed;
+		//angle_speed_turnSpeed.y = speed;
+		//angle_speed_turnSpeed.y = 0;
 
-		std::cout << "MoveSpeed: " + std::to_string(speed) << std::endl;
+		std::cout << "MoveSpeed: " + std::to_string(angle_speed_turnSpeed.x) << std::endl;
 	}
 
 	void RandomTurnSpeed()
@@ -187,10 +197,10 @@ public:
 
 		std::random_device rd;  //Will be used to obtain a seed for the random number engine
 		std::mt19937 gen(rd()); //Standard mersenne_twister_engine seeded with rd()
-		std::uniform_real_distribution<> dis(1, 150);
-		std::uniform_real_distribution<> dis2(1, 120);
-		int sensorOffsetDistance = int(dis2(gen) + 1); 
+		std::uniform_real_distribution<> dis(1, 60);
+		std::uniform_real_distribution<> dis2(1, 50);
 		int sensorAngleSpacing = int(dis(gen) + 1);
+		int sensorOffsetDistance = int(dis2(gen) + 1); 
 		evapSpeed_blendSpeed_sensOffsetDist_senseAngleSpacing.z = sensorOffsetDistance;
 		evapSpeed_blendSpeed_sensOffsetDist_senseAngleSpacing.a = sensorAngleSpacing;
 
@@ -206,8 +216,8 @@ public:
 	{
 		std::random_device rd;  //Will be used to obtain a seed for the random number engine
 		std::mt19937 gen(rd()); //Standard mersenne_twister_engine seeded with rd()
-		std::uniform_real_distribution<> dis(0, 3);
-		std::uniform_real_distribution<> disBlend(0, 10);
+		std::uniform_real_distribution<> dis(0, 1);
+		std::uniform_real_distribution<> disBlend(2, 10);
 		float evaporationSpeed = dis(gen);
 		float blendSpeed = disBlend(gen);
 		//evapSpeed_blendSpeed_sensOffsetDist_senseAngleSpacing.x = evaporationSpeed;

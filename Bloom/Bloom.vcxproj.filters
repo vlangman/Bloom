@@ -32,6 +32,15 @@
     <ClInclude Include="GLShader.hpp">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="Genetic.hpp">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="Sensors.hpp">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="Neuron.hpp">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <None Include="vert.vert">
@@ -48,5 +57,8 @@
     <FxCompile Include="PixelShader.glsl">
       <Filter>Shaders</Filter>
     </FxCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <CopyFileToFolders Include="..\Dependencies\lib\GPUPerfAPIGL-x64.dll" />
   </ItemGroup>
 </Project>
