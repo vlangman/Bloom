@@ -5,7 +5,7 @@
 struct Forward_Line_Sensor : virtual public Neuron {
 	//parameters
 	Forward_Line_Sensor() :
-		Neuron(FORWARD_LINE_SENSOR, std::vector<neuronParameter>({
+		Neuron(FORWARD_LINE_SENSOR,SENSOR, std::vector<neuronParameter>({
 				neuronParameter(LINE_SENSOR_ANGLES,0,1),
 				neuronParameter(LINE_SENSOR_LENGTH,0,51)
 			})

@@ -315,7 +315,7 @@ int main()
 
 
     GeneticFactory geneFactory;
-    geneFactory.GenerateNeuron();
+    geneFactory.GenerateChromosomes(4);
 
 
     // glfw window creation

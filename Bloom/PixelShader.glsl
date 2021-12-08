@@ -4,6 +4,7 @@ layout(rgba32f, binding = 0) volatile uniform image2D img_output;
 layout(location = 2) uniform float deltaTime;
 layout(location = 6) uniform vec2 resolution;
 
+
 struct Species {
 	vec4 speciesColour;
 	vec4 trailColour;

@@ -6,22 +6,7 @@
 #include <string>
 #include "Neuron.hpp"
 #include "Sensors.hpp"
-
-
-	enum BASE_NEURON_TYPE
-	{
-		INTERNAL,
-		SENSOR,
-		ACTION
-	};
-
-
-	std::map<BASE_NEURON_TYPE, std::string> baseNeurons({ 
-		std::pair<BASE_NEURON_TYPE,std::string>(SENSOR,"SENSOR"),
-		std::pair<BASE_NEURON_TYPE,std::string>(INTERNAL,"INTERNAL"),
-		std::pair<BASE_NEURON_TYPE,std::string>(ACTION,"ACTION")
-	});
-
+#include <cmath>
 
 	
 	
@@ -31,9 +16,12 @@
 		GeneticFactory();
 		~GeneticFactory();
 
-		void GenerateNeuron();
+		void GenerateChromosomes(int chromosomeCount);
+
+		Neuron * GenerateNeuron(BASE_NEURON_TYPE excludeType, std::map<NEURON_TYPES, Neuron*>* brainMap);
+		std::map<NEURON_TYPES, Neuron*>  PruneDNA(std::vector<Neuron> * neurons);
 		void GenCodex();
-		int RandomGen(float min, float max);
+		float RandomGen(float min, float max);
 	private:
 		std::vector<char> neuronCodex;
 		int chromosomeCount = 1;
@@ -54,17 +42,25 @@
 
 
 
-	void GeneticFactory::GenerateNeuron()
+	Neuron * GeneticFactory::GenerateNeuron(BASE_NEURON_TYPE excludeType,std::map<NEURON_TYPES,Neuron*> *brainMap)
 	{
 
 		std::string chromosome = "";
 
-		//GEN RANDOM NEURON TYPE 1 (N1) ASSIGN A CHARACTER WITH INDEX IN NEURON_TYPE enum
+		//GEN RANDOM NEURON TYPE 1 (N1) OF NOT EXCLUDE TYPE
+		//ASSIGN A CHARACTER WITH INDEX IN NEURON_TYPE enum
 		
 		//[0-2]
-		int neuronType = RandomGen(0, 3);
+		int enumStart = 0;
+		int enumEnd = 3;
+		if (SENSOR == excludeType)
+			enumStart = 1;
+		if (ACTION == excludeType)
+			enumEnd = 2;
+
+		int neuronType = RandomGen(enumStart, enumEnd);
 		std::string neuronTypeGene = std::to_string(neuronType);
-		std::cout <<  "TYPE: " + baseNeurons[(BASE_NEURON_TYPE)neuronType] << std::endl;
+
 		chromosome += neuronTypeGene;
 
 		// SELECT N1 NEURON_NAME RANDOMLY
@@ -81,12 +77,69 @@
 		const char neuronSubTypeGene = neuronCodex[neuronSubTypeIndex];
 		chromosome += neuronSubTypeGene;
 		
+		//CHECK IF NEURON EXISTS IN CURRENT BRAINMAP BEFORE CREATING A NEW ONE
+		if (brainMap->size() && brainMap->find((NEURON_TYPES)neuronSubTypeIndex) != brainMap->end())
+		{
+			std::cout << "ALREADY CREATED , FETCHING REF ["+neuronTypes[brainMap->at((NEURON_TYPES)neuronSubTypeIndex)->type] + "] "  << std::endl;
+			return brainMap->at((NEURON_TYPES)neuronSubTypeIndex);
+		}
 
-		Neuron *newNeuron = new Neuron((NEURON_TYPES)neuronSubTypeIndex, neuronParameterMap[(NEURON_TYPES)neuronSubTypeIndex]);
 
+		Neuron *newNeuron = new Neuron((NEURON_TYPES)neuronSubTypeIndex,(BASE_NEURON_TYPE)neuronType, neuronParameterMap[(NEURON_TYPES)neuronSubTypeIndex]);
+		brainMap->insert({ newNeuron->type, newNeuron });
 
+		return newNeuron;
 		//GEN N1 ConnectionWeight
 	
+	}
+
+
+	void GeneticFactory::GenerateChromosomes(int chromosomeCount)
+	{
+
+		std::map<NEURON_TYPES, Neuron*> brainMapping;
+		std::vector<Neuron> neuronTree;
+		for (int i = 0; i < chromosomeCount; i++)
+		{
+
+			//GEN SENSOR OR AN INTERNAL;
+			Neuron *neuronA = this->GenerateNeuron(ACTION,&brainMapping);
+			//GEN INTERNAL OR ACTION
+			Neuron *neuronB = this->GenerateNeuron(SENSOR,&brainMapping);
+
+
+			std::string connectionWeight = std::to_string(RandomGen(-4.0, 4.0));
+		
+			std::string negative = connectionWeight[0] == '-' ? "1": "0";
+			if (negative == "1")
+				connectionWeight = connectionWeight.substr(1, connectionWeight.length());
+			std::string weightGenes = connectionWeight.substr(0, 1) + connectionWeight.substr(2, 2);
+
+
+			std::string chromosome = neuronA->genes + neuronB->genes + negative + weightGenes;
+			
+			//std::cout << "CONNECTION WEIGHT: " + negative + weightGenes << std::endl;
+			//std::cout << "FULL CHROMOSOME: ["+chromosome+"]" << std::endl;
+
+			neuronA->connections.push_back(new connection(neuronB,atof(connectionWeight.c_str())));
+			std::cout << "NEW CONNECTION BETWEEN [" + neuronTypes[neuronA->type] +"]" + " AND [" +neuronTypes[neuronB->type] + "]"  << std::endl;
+			
+
+			if (SENSOR == neuronA->baseType)
+			{
+				std::cout << "INCREMENTING  CONNECTED SENSORS FOR " + neuronTypes[neuronB->type] << std::endl;
+				neuronB->connectedSensors++;
+				neuronTree.push_back(*neuronA);
+			}
+			if (INTERNAL == neuronA->baseType)
+			{
+				neuronTree.push_back(*neuronA);
+			}
+	
+		}
+
+		std::map<NEURON_TYPES, Neuron*> program = PruneDNA(&neuronTree);
+
 	}
 
 
@@ -102,7 +155,86 @@
 		
 	}
 
-	int GeneticFactory::RandomGen(float min, float max)
+	std::map<NEURON_TYPES, Neuron*>  GeneticFactory::PruneDNA(std::vector<Neuron> * sensorNeurons)
+	{
+		std::map<NEURON_TYPES, Neuron*> selected;
+
+		std::cout << "CHECKING PRUNE :: COUNT " + std::to_string(sensorNeurons->size()) << std::endl <<std::endl;
+
+		std::map<NEURON_TYPES, bool> visited;
+
+
+		//ITERATE THROUGH LIST OF SENSORS
+		for (auto n : *sensorNeurons)
+		{
+			std::cout << "CHECKING NEURON OF TYPE [" + neuronTypes[n.type] + "]" << std::endl;
+			visited[n.type] = true;
+			bool leadsToAction = false;
+			//CREATE A STACK FOR ALL POSSIBLE CONNECTIONS
+			std::vector<connection*> stack = std::vector<connection*>(n.connections);
+			//LOOP THROUGH THE STACK TO FIND AN ACTION CONN ELSE ADD THE CONNECTIONS IF NOT SELF REFERENCE
+			for(int i = 0; i < stack.size(); i++)
+			{
+				connection* conn = stack[i];
+				std::cout << "\t" << "CHECKING ["+ neuronTypes[n.type]+"] CONNECTION TYPE: "  + neuronTypes[conn->neuron->type] << std::endl;
+
+				if (ACTION == conn->neuron->baseType)
+				{
+					leadsToAction = true;
+					if(SENSOR == n.type || (INTERNAL == n.type && n.connectedSensors > 0))
+						std::cout << "\t"+neuronTypes[n.type] + " LEADS TO ACTION [" + neuronTypes[conn->neuron->type] + "] ... NEURON ADDED TO LIST"<< std::endl;
+					break;
+				}
+				else
+				{
+					for (connection* subCon : conn->neuron->connections)
+					{
+						if (subCon != conn && !visited[conn->neuron->type]) {
+							std::cout << "\t FOUND SUB CONNECTION IN "+ neuronTypes[conn->neuron->type] +" " + neuronTypes[subCon->neuron->type] << std::endl;
+							stack.push_back(subCon);
+						}
+					}
+				}
+			}
+
+			visited.clear();
+
+			if (INTERNAL == n.baseType)
+			{
+				if (n.connectedSensors > 0 && leadsToAction && selected.find(n.type) == selected.end())
+					selected.insert({ n.type, &n });
+				else
+				{
+					std::string debug = leadsToAction ? "HAS NO [SENSORS] CONNECTED" : "CONNECTS TO NO [ACTIONS]";
+					std::cout << "\t"+neuronTypes[n.type] + " " + debug  << std::endl;
+				}
+			}
+			else if (SENSOR == n.baseType)
+			{
+				if (leadsToAction && selected.find(n.type) == selected.end())
+				{
+					selected.insert({ n.type, &n });
+				}
+				else
+					std::cout << neuronTypes[n.type] + " CONNECTS TO NO ACTION OUTPUT "  << std::endl;
+
+			}
+
+		}
+
+		std::cout << "RESULTANT ARRAY PROGRAM : " << std::endl;
+		for (const auto neuron : selected)
+		{
+			std::cout << "\t" + neuronTypes[neuron.second->type] << std::endl;
+		}
+
+
+		return selected;
+	}
+
+	
+
+	float GeneticFactory::RandomGen(float min, float max)
 	{
 		//GEN RANDOM NEURON TYPE 1 (N1) ASSIGN A CHARACTER WITH INDEX IN NEURON_TYPE enum
 		std::random_device rd;
