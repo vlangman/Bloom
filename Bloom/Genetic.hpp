@@ -8,37 +8,43 @@
 #include "Sensors.hpp"
 #include <cmath>
 
-	
-	
-	class GeneticFactory
-	{
-	public:
-		GeneticFactory();
-		~GeneticFactory();
 
-		void GenerateChromosomes(int chromosomeCount);
 
-		Neuron * GenerateNeuron(BASE_NEURON_TYPE excludeType, std::map<NEURON_TYPES, Neuron*>* brainMap);
-		std::map<NEURON_TYPES, Neuron*>  PruneDNA(std::vector<Neuron> * neurons);
-		void GenCodex();
-		float RandomGen(float min, float max);
-	private:
-		std::vector<char> neuronCodex;
-		int chromosomeCount = 1;
-		std::vector<std::string> genome;
-	};
+class GeneticFactory
+{
+public:
+	GeneticFactory();
+	~GeneticFactory();
 
-	GeneticFactory::GeneticFactory()
-	{
-		int chromosomeCount = 1;
-		GenCodex();
+	void GenerateChromosomes(int chromosomeCount);
 
-		
-	}
+	Neuron* GenerateNeuron(BASE_NEURON_TYPE excludeType, std::map<NEURON_TYPES, Neuron*>* brainMap);
+	std::map<NEURON_TYPES, Neuron*>  PruneDNA(std::vector<Neuron>* neurons);
+	void GenCodex();
+	float RandomGen(float min, float max);
+private:
+	std::vector<char> neuronCodex;
+	int chromosomeCount = 1;
+	std::vector<std::string> genome;
+};
 
-	GeneticFactory::~GeneticFactory()
-	{
-	}
+GeneticFactory::GeneticFactory()
+{
+	int chromosomeCount = 1;
+	GenCodex();
+
+
+}
+
+GeneticFactory::~GeneticFactory()
+{
+}
+
+
+
+
+
+
 
 
 
@@ -80,7 +86,7 @@
 		//CHECK IF NEURON EXISTS IN CURRENT BRAINMAP BEFORE CREATING A NEW ONE
 		if (brainMap->size() && brainMap->find((NEURON_TYPES)neuronSubTypeIndex) != brainMap->end())
 		{
-			std::cout << "ALREADY CREATED , FETCHING REF ["+neuronTypes[brainMap->at((NEURON_TYPES)neuronSubTypeIndex)->type] + "] "  << std::endl;
+			//std::cout << "ALREADY CREATED , FETCHING REF [" + brainMap->at((NEURON_TYPES)neuronSubTypeIndex)->printNeuronType() + "] "  << std::endl;
 			return brainMap->at((NEURON_TYPES)neuronSubTypeIndex);
 		}
 
@@ -122,12 +128,12 @@
 			//std::cout << "FULL CHROMOSOME: ["+chromosome+"]" << std::endl;
 
 			neuronA->connections.push_back(new connection(neuronB,atof(connectionWeight.c_str())));
-			std::cout << "NEW CONNECTION BETWEEN [" + neuronTypes[neuronA->type] +"]" + " AND [" +neuronTypes[neuronB->type] + "]"  << std::endl;
+			std::cout << "CONNECTING [" + neuronA->printNeuronType() +"]" + " TO [" + neuronB->printNeuronType() + "]"  << std::endl;
 			
 
 			if (SENSOR == neuronA->baseType)
 			{
-				std::cout << "INCREMENTING  CONNECTED SENSORS FOR " + neuronTypes[neuronB->type] << std::endl;
+				std::cout << "INCREMENTING  CONNECTED SENSORS FOR " + neuronB->printNeuronType() << std::endl;
 				neuronB->connectedSensors++;
 				neuronTree.push_back(*neuronA);
 			}
@@ -163,76 +169,79 @@
 
 		std::map<NEURON_TYPES, bool> visited;
 
-
-		//ITERATE THROUGH LIST OF SENSORS
-		for (auto n : *sensorNeurons)
+		for(auto n = sensorNeurons->begin(); n != sensorNeurons->end(); n++)
 		{
-			std::cout << "CHECKING NEURON OF TYPE [" + neuronTypes[n.type] + "]" << std::endl;
-			visited[n.type] = true;
+			std::cout << "CHECKING NEURON OF TYPE [" + n->printNeuronType() + "]" << std::endl;
+			visited[n->type] = true;
 			bool leadsToAction = false;
 			//CREATE A STACK FOR ALL POSSIBLE CONNECTIONS
-			std::vector<connection*> stack = std::vector<connection*>(n.connections);
+			std::vector<connection*> stack = std::vector<connection*>(n->connections);
 			//LOOP THROUGH THE STACK TO FIND AN ACTION CONN ELSE ADD THE CONNECTIONS IF NOT SELF REFERENCE
 			for(int i = 0; i < stack.size(); i++)
 			{
 				connection* conn = stack[i];
-				std::cout << "\t" << "CHECKING ["+ neuronTypes[n.type]+"] CONNECTION TYPE: "  + neuronTypes[conn->neuron->type] << std::endl;
+				if (visited[conn->neuron->type])
+					continue;
+				std::cout << "\t" << "CHECKING ["+ n->printNeuronType() +"] CONNECTION TYPE: "  + conn->neuron->printNeuronType() << std::endl;
 
 				if (ACTION == conn->neuron->baseType)
 				{
 					leadsToAction = true;
-					if(SENSOR == n.type || (INTERNAL == n.type && n.connectedSensors > 0))
-						std::cout << "\t"+neuronTypes[n.type] + " LEADS TO ACTION [" + neuronTypes[conn->neuron->type] + "] ... NEURON ADDED TO LIST"<< std::endl;
+					if(SENSOR == n->type || (INTERNAL == n->type && n->connectedSensors > 0))
+						std::cout << "\t"+ n->printNeuronType() + "---> [" + conn->neuron->printNeuronType() + "] ADD TO PROGRAM"<< std::endl;
 					break;
 				}
 				else
 				{
 					for (connection* subCon : conn->neuron->connections)
 					{
-						if (subCon != conn && !visited[conn->neuron->type]) {
-							std::cout << "\t FOUND SUB CONNECTION IN "+ neuronTypes[conn->neuron->type] +" " + neuronTypes[subCon->neuron->type] << std::endl;
+						if (subCon != conn ) {
+							std::cout << "\t"+ conn->neuron->printNeuronType() +" IDENTIFIED POSSIBLE CONNECTION ---> " + subCon->neuron->printNeuronType() << std::endl;
 							stack.push_back(subCon);
 						}
 					}
 				}
 			}
 
+			stack.clear();
 			visited.clear();
-
-			if (INTERNAL == n.baseType)
+	
+			if (INTERNAL == n->baseType)
 			{
-				if (n.connectedSensors > 0 && leadsToAction && selected.find(n.type) == selected.end())
-					selected.insert({ n.type, &n });
+				if (n->connectedSensors > 0 && leadsToAction && selected.find(n->type) == selected.end())
+					selected.insert({ n->type, n->GetRef() });
 				else
 				{
 					std::string debug = leadsToAction ? "HAS NO [SENSORS] CONNECTED" : "CONNECTS TO NO [ACTIONS]";
-					std::cout << "\t"+neuronTypes[n.type] + " " + debug  << std::endl;
+					std::cout << "\t"+ n->printNeuronType() + " " + debug  << std::endl;
 				}
 			}
-			else if (SENSOR == n.baseType)
+			else if (SENSOR == n->baseType)
 			{
-				if (leadsToAction && selected.find(n.type) == selected.end())
+				if (leadsToAction && selected.find(n->type) == selected.end())
 				{
-					selected.insert({ n.type, &n });
+					std::cout << "ADDING [" + n->printNeuronType()+"] TO PROGRAM " << std::endl;
+					selected.insert({ n->type, n->GetRef()});
+					
 				}
 				else
-					std::cout << neuronTypes[n.type] + " CONNECTS TO NO ACTION OUTPUT "  << std::endl;
+					std::cout << n->printNeuronType() + " CONNECTS TO NO ACTION OUTPUT "  << std::endl;
 
 			}
 
 		}
 
 		std::cout << "RESULTANT ARRAY PROGRAM : " << std::endl;
-		for (const auto neuron : selected)
+		for (auto itt = selected.begin() ; itt != selected.end(); itt++)
 		{
-			std::cout << "\t" + neuronTypes[neuron.second->type] << std::endl;
+			std::cout << "\t" +  itt->second->printNeuronType() << std::endl;
 		}
 
 
 		return selected;
 	}
 
-	
+
 
 	float GeneticFactory::RandomGen(float min, float max)
 	{

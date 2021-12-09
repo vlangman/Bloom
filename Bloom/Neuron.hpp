@@ -230,6 +230,8 @@ std::string BinToHex(std::string bin)
 	return hex;
 }
 
+//forward declarations
+
 struct connection;
 
 struct Neuron {
@@ -247,6 +249,7 @@ struct Neuron {
 	
 	int connectedSensors = 0;
 	std::vector<connection*> connections;
+
 
 	Neuron(){}
 
@@ -267,7 +270,22 @@ struct Neuron {
 		DebugParameters();
 	}
 
-	
+	std::string printNeuronType()
+	{
+		std::string ret = "";
+
+		if (SENSOR == this->baseType)
+		{
+			ret = "\x1B[32m" + neuronTypes[this->type] + "\033[0m";
+		}
+		else if (INTERNAL == this->baseType) {
+			ret = "\x1B[33m" + neuronTypes[this->type] + "\033[0m";
+		}
+		else
+			ret = "\x1B[91m" + neuronTypes[this->type] + "\033[0m";
+
+		return ret;
+	}
 
 	std::string GenesToBinary()
 	{
@@ -301,13 +319,17 @@ struct Neuron {
 		/*for (int i = 0; i < (4 - this->parameters.size()) ; i++)
 			this->genes += this->spacerChar;*/
 		//std::cout << "Neuron Genes: [" + this->genes + "]" << std::endl;
-		BinToHex(GenesToBinary());
+		//BinToHex(GenesToBinary());
 	
+	}
+
+	Neuron* GetRef() {
+		return this;
 	}
 
 	void DebugParameters()
 	{
-		std::cout << "CREATING NEW Neuron of type : " + neuronTypes[(NEURON_TYPES)this->type] << std::endl;
+		//std::cout << "CREATING NEW Neuron of type : " + this->printNeuronType() << std::endl;
 		/*std::cout << "Parameters" << std::endl;
 
 		for (neuronParameter neuron : this->parameters)
@@ -316,7 +338,12 @@ struct Neuron {
 		}*/
 	}
 
+
+
+
 };
+
+
 
 struct connection {
 	connection(Neuron * p, float weight) {
