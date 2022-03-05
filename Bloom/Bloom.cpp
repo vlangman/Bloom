@@ -1,7 +1,7 @@
 ﻿
 #include "GLShader.hpp"
 #include "string_cast.hpp"
-#include<windows.h>
+#include <windows.h>
 #include "Genetic.hpp"
 
 
@@ -309,21 +309,44 @@ int main()
     glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
     
     loadPerformanceDebug();
-#ifdef __APPLE__
-    glfwWindowHint(GLFW_OPENGL_FORWARD_COMPAT, GL_TRUE);
-#endif
+
 
 
     GeneticFactory geneFactory;
-    geneFactory.GenerateChromosomes(8);
+    //geneFactory.GenerateChromosomes(8);
+
+    std::map<NEURON_TYPES, std::vector<NEURON_TYPES>> test;
+
+    test[INTERNAL_1] = std::vector<NEURON_TYPES>{
+     INTERNAL_1,
+     INTERNAL_1,
+     INTERNAL_2
+    };
+ 
+    test[INTERNAL_0] = std::vector<NEURON_TYPES>{
+        TURN_TARGET_DIRECTION_RIGHT,
+        INTERNAL_1
+    };
+    test[FORWARD_LINE_SENSOR] = std::vector<NEURON_TYPES>{
+        INTERNAL_0,
+        INTERNAL_1,
+        MOVE_FORWARD
+    };
+    test[INTERNAL_2] = std::vector<NEURON_TYPES>{
+        TURN_TARGET_DIRECTION_LEFT
+    };
+ 
+    geneFactory.GenerateTest(test);
 
 
-    // glfw window creation
-    // --------------------
-    //fullscreen
-    //GLFWwindow* window = glfwCreateWindow(SCR_WIDTH, SCR_HEIGHT, "LearnOpenGL", glfwGetPrimaryMonitor(), NULL);
-    //windowed
-    //GLFWwindow* window = glfwCreateWindow(SCR_WIDTH, SCR_HEIGHT, "LearnOpenGL",NULL, NULL);
+    // //glfw window creation
+
+    //    //fullscreen
+    //    //GLFWwindow* window = glfwCreateWindow(SCR_WIDTH, SCR_HEIGHT, "LearnOpenGL", glfwGetPrimaryMonitor(), NULL);
+    //    //windowed
+    //GLFWwindow * window = glfwCreateWindow(SCR_WIDTH, SCR_HEIGHT, "LearnOpenGL",NULL, NULL);
+
+    //
     //if (window == NULL)
     //{
     //    std::cout << "Failed to create GLFW window" << std::endl;
@@ -493,7 +516,7 @@ int main()
     //// glfw: terminate, clearing all previously allocated GLFW resources.
     //// ------------------------------------------------------------------
     //glfwTerminate();
-    return 0;
+    //return 0;
 }
 
 // process all input: query GLFW whether relevant keys are pressed/released this frame and react accordingly

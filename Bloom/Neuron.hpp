@@ -7,6 +7,7 @@
 #include <stdlib.h>
 
 
+
 const int INTERNAL_SIZE = 3;
 const int SENSOR_SIZE = 3;
 const int ACTIONS_SIZE = 3;
@@ -17,6 +18,7 @@ enum BASE_NEURON_TYPE
 	INTERNAL,
 	ACTION
 };
+
 
 enum NEURON_TYPES {
 	//internal
@@ -159,6 +161,7 @@ std::pair<NEURON_TYPES, std::vector<neuronParameter>>(TURN_TARGET_DIRECTION_LEFT
 
 
 
+
 void createMap(std::map<std::string, char>* um)
 {
 	(*um)["0000"] = '0';
@@ -234,27 +237,37 @@ std::string BinToHex(std::string bin)
 
 struct connection;
 
-struct Neuron {
+struct NeuronPrefab {
 
 	NEURON_TYPES type;
 	BASE_NEURON_TYPE baseType;
 	
-	std::string spacerChar = "x0";
 	std::string genes = "";
 
-	std::vector<neuronParameter> parameters;
 	int maxParameters = 4;
-
-	float value; 
-	
-	int connectedSensors = 0;
+	std::vector<neuronParameter> parameters;
 	std::vector<connection*> connections;
 
+	int ID = -1;
 
-	Neuron(){}
-
-	Neuron(NEURON_TYPES type, BASE_NEURON_TYPE base, std::vector<neuronParameter> params) {
+	bool sensorInputConnected = false;
+	bool connectedToAction = false;
 	
+
+	NeuronPrefab(){}
+	
+	NeuronPrefab(NeuronPrefab* n) {
+		this->type = n->type;
+		this->baseType = n->baseType;
+		this->parameters = n->parameters;
+		this->maxParameters = n->maxParameters;
+		this->ID = n->ID;
+		this->connectedToAction = n->connectedToAction;
+		this->sensorInputConnected = n->sensorInputConnected;
+	}
+
+	NeuronPrefab(NEURON_TYPES type, BASE_NEURON_TYPE base, std::vector<neuronParameter> params, int id) {
+		this->ID = id;
 		this->type = type;
 		this->baseType = base;
 
@@ -323,7 +336,7 @@ struct Neuron {
 	
 	}
 
-	Neuron* GetRef() {
+	NeuronPrefab* GetRef() {
 		return this;
 	}
 
@@ -345,12 +358,15 @@ struct Neuron {
 
 
 
-struct connection {
-	connection(Neuron * p, float weight) {
-		this->neuron = p;
 
+struct connection {
+	bool isValidConnection = false;
+
+	connection(NeuronPrefab* n, float weight) {
+
+		this->neuron = n;
 		this->connectionWeight = weight;
 	}
-	Neuron * neuron;
+	NeuronPrefab* neuron;
 	float connectionWeight;
 };

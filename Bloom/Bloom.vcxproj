@@ -180,8 +180,8 @@
   <ItemGroup>
     <ClInclude Include="Genetic.hpp" />
     <ClInclude Include="GLShader.hpp" />
+    <ClInclude Include="Graph.hpp" />
     <ClInclude Include="Neuron.hpp" />
-    <ClInclude Include="Sensors.hpp" />
   </ItemGroup>
   <ItemGroup>
     <CopyFileToFolders Include="..\Dependencies\lib\GPUPerfAPIGL-x64.dll">
