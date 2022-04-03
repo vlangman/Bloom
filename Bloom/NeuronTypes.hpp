@@ -1,0 +1,67 @@
+#pragma once
+#include <map>
+#include <vector>
+
+
+const int INTERNAL_SIZE = 3;
+const int SENSOR_SIZE = 3;
+const int ACTIONS_SIZE = 3;
+
+enum BASE_NEURON_TYPE
+{
+	SENSOR,
+	INTERNAL,
+	ACTION
+};
+
+
+enum NEURON_TYPES {
+	//internal
+	INTERNAL_0,
+	INTERNAL_1,
+	INTERNAL_2,
+
+	//sensors
+	FORWARD_LINE_SENSOR,
+	LEFT_LINE_SENSOR,
+	RIGHT_LINE_SENSOR,
+
+	//actions
+	MOVE_FORWARD,
+	TURN_TARGET_DIRECTION_RIGHT,
+	TURN_TARGET_DIRECTION_LEFT,
+};
+
+
+
+
+//MAPING BASE_NEURON_TYPES FOR DEBUGGING WITH STRINGS
+std::map<BASE_NEURON_TYPE, std::string> baseNeuronTypes({
+	std::pair<BASE_NEURON_TYPE,std::string>(SENSOR,"SENSOR"),
+	std::pair<BASE_NEURON_TYPE,std::string>(INTERNAL,"INTERNAL"),
+	std::pair<BASE_NEURON_TYPE,std::string>(ACTION,"ACTION")
+	});
+
+//MAPING NEURON_TYPES FOR DEBUGGING WITH STRINGS
+std::map<NEURON_TYPES, std::string> neuronTypes({
+	std::pair<NEURON_TYPES,std::string>(INTERNAL_0,"INTERNAL_0"),
+	std::pair<NEURON_TYPES,std::string>(INTERNAL_1,"INTERNAL_1"),
+	std::pair<NEURON_TYPES,std::string>(INTERNAL_2,"INTERNAL_2"),
+
+	//SENSORS
+	std::pair<NEURON_TYPES,std::string>(FORWARD_LINE_SENSOR,"FORWARD_LINE_SENSOR"),
+	std::pair<NEURON_TYPES,std::string>(LEFT_LINE_SENSOR,"LEFT_LINE_SENSOR"),
+	std::pair<NEURON_TYPES,std::string>(RIGHT_LINE_SENSOR,"RIGHT_LINE_SENSOR"),
+
+
+	//ACTIONS
+	std::pair<NEURON_TYPES,std::string>(MOVE_FORWARD,"MOVE_FORWARD"),
+	std::pair<NEURON_TYPES,std::string>(TURN_TARGET_DIRECTION_RIGHT,"TURN_TARGET_DIRECTION_RIGHT"),
+	std::pair<NEURON_TYPES,std::string>(TURN_TARGET_DIRECTION_LEFT,"TURN_TARGET_DIRECTION_LEFT"),
+
+	});
+
+
+
+
+

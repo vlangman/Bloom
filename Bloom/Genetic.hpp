@@ -15,10 +15,11 @@ public:
 	GeneticFactory();
 	~GeneticFactory();
 
-	void GenerateChromosomes(int chromosomeCount);
+
+	std::map < NEURON_TYPES, NeuronPrefab*> GenerateChromosomes(int chromosomeCount);
 
 	NeuronPrefab* GenerateNeuronPrefab(BASE_NEURON_TYPE excludeType, std::map<NEURON_TYPES, NeuronPrefab*>* brainMap, int &count);
-	void  PruneDNA( std::vector<std::vector<NeuronPrefab*>> &vec2);
+	std::map<NEURON_TYPES, NeuronPrefab*> PruneDNA( std::vector<std::vector<NeuronPrefab*>> &vec2);
 	void printVec2(std::vector<std::vector<NeuronPrefab*>>& vec2);
 	void GenCodex();
 	float RandomGen(float min, float max);
@@ -123,7 +124,7 @@ GeneticFactory::~GeneticFactory()
 		
 
 		//CHECK IF NEURON EXISTS IN CURRENT BRAINMAP BEFORE CREATING A NEW ONE
-		if (brainMap->size() && brainMap->find((NEURON_TYPES)TypeA) != brainMap->end())
+		if (brainMap->find((NEURON_TYPES)TypeA) != brainMap->end())
 		{
 			//copy the old neuron and return it , to start	
 			return new NeuronPrefab(brainMap->at(TypeA));
@@ -160,7 +161,7 @@ GeneticFactory::~GeneticFactory()
 		int rowOfA = pair.first;
 		int rowOfB = pair.second;
 
-		//ONLY A can is connected to B FORS SENSORS AND ACTIONS
+		//ONLY A can is connected to B FOR SENSORS AND ACTIONS
 
 		
 		if (rowOfA >= 0)
@@ -223,7 +224,7 @@ GeneticFactory::~GeneticFactory()
 		
 	}
 
-	void GeneticFactory::GenerateChromosomes(int chromosomeCount)
+	std::map < NEURON_TYPES, NeuronPrefab*> GeneticFactory::GenerateChromosomes(int chromosomeCount)
 	{
 
 		std::map<NEURON_TYPES, NeuronPrefab*> brainMapping;
@@ -243,6 +244,8 @@ GeneticFactory::~GeneticFactory()
 			//GEN INTERNAL OR ACTION
 			NeuronPrefab*neuronB = this->GenerateNeuronPrefab(SENSOR,&brainMapping, Indexer);
 
+			
+
 
 			std::string connectionWeight = std::to_string(RandomGen(-4.0, 4.0));
 		
@@ -256,8 +259,8 @@ GeneticFactory::~GeneticFactory()
 			//std::cout << "CONNECTION WEIGHT: " + negative + weightGenes << std::endl;
 			//std::cout << "FULL CHROMOSOME: ["+chromosome+"]" << std::endl;
 
+			std::cout << "CONNECTING [" + neuronA->printNeuronType() + "]" + " TO [" + neuronB->printNeuronType() + "]" << std::endl;
 			neuronA->connections.push_back(new connection(neuronB,atof(connectionWeight.c_str())));
-			std::cout << "CONNECTING [" + neuronA->printNeuronType() +"]" + " TO [" + neuronB->printNeuronType() + "]"  << std::endl;
 			
 			//totalVertices += 2;
 			
@@ -278,7 +281,7 @@ GeneticFactory::~GeneticFactory()
 		
 		}
 
-		PruneDNA(connSquares);
+		return PruneDNA(connSquares);
 
 
 	/*	for (int x = 0; x < connSquares.size(); x++)
@@ -306,7 +309,6 @@ GeneticFactory::~GeneticFactory()
 		this->neuronCodex = neuronCodex;
 		
 	}
-
 
 
 	void AddIndirectConnection(NeuronPrefab* parent, NeuronPrefab* child)
@@ -343,15 +345,15 @@ GeneticFactory::~GeneticFactory()
 		}
 	}
 
-	void  GeneticFactory::PruneDNA(std::vector<std::vector<NeuronPrefab*>> &vec2)
+	std::map<NEURON_TYPES,NeuronPrefab*>  GeneticFactory::PruneDNA(std::vector<std::vector<NeuronPrefab*>> &vec2)
 	{
 
-		for (int x = 0; x < vec2.size(); x++)
+		for (int x = 0; x < vec2.size() -1; x++)
 		{
 			NeuronPrefab* parent = vec2[x][0];
 			
 			
-			for (int y = 1; y < vec2[x].size(); y++)
+			for (int y = 1; y < vec2[x].size() -1; y++)
 			{
 			
 				NeuronPrefab* child = vec2[x][y];
@@ -359,19 +361,20 @@ GeneticFactory::~GeneticFactory()
 
 				try
 				{
-					if (vec2[parent->ID].size() > 1)
+					
+					if (parent != NULL &&  vec2[parent->ID].size() > 1)
 					{
-						for (int count = 1; count < vec2[parent->ID].size(); count++)
+						for (int count = 1; count < vec2[parent->ID].size() - 1; count++)
 						{
 							NeuronPrefab* subchild = vec2[parent->ID][count];
 							AddIndirectConnection(parent, subchild);
 						}
 					}
 
-
-					if (vec2[child->ID].size() > 1)
+					
+					if (child->ID < vec2.size() && vec2[child->ID].size() > 1)
 					{
-						for (int count = 1; count < vec2[child->ID].size(); count++)
+						for (int count = 1; count < vec2[child->ID].size() - 1; count++)
 						{
 							NeuronPrefab* subchild = vec2[child->ID][count];
 							AddIndirectConnection(child, subchild);
@@ -412,7 +415,7 @@ GeneticFactory::~GeneticFactory()
 		for (auto n : program)
 			std::cout << n.second->printNeuronType() << std::endl;
 		
-
+		return program;
 	}
 
 

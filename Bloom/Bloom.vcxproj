@@ -163,7 +163,7 @@
   <ItemGroup>
     <ClCompile Include="..\Dependencies\src\glad.c" />
     <ClCompile Include="Bloom.cpp" />
-    <ClCompile Include="Species.cpp" />
+    <ClCompile Include="Utils.cpp" />
   </ItemGroup>
   <ItemGroup>
     <FxCompile Include="PixelShader.glsl">
@@ -180,8 +180,11 @@
   <ItemGroup>
     <ClInclude Include="Genetic.hpp" />
     <ClInclude Include="GLShader.hpp" />
-    <ClInclude Include="Graph.hpp" />
     <ClInclude Include="Neuron.hpp" />
+    <ClInclude Include="NeuronParameter.hpp" />
+    <ClInclude Include="NeuronTypes.hpp" />
+    <ClInclude Include="Species.hpp" />
+    <ClInclude Include="Utils.hpp" />
   </ItemGroup>
   <ItemGroup>
     <CopyFileToFolders Include="..\Dependencies\lib\GPUPerfAPIGL-x64.dll">

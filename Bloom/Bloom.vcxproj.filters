@@ -24,7 +24,7 @@
     <ClCompile Include="..\Dependencies\src\glad.c">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="Species.cpp">
+    <ClCompile Include="Utils.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>
@@ -38,7 +38,16 @@
     <ClInclude Include="Neuron.hpp">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="Graph.hpp">
+    <ClInclude Include="NeuronTypes.hpp">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="NeuronParameter.hpp">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="Utils.hpp">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="Species.hpp">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>
