@@ -1,0 +1,6 @@
+public enum GENE_TYPE
+{
+	CONNECTION,
+	NEURON,
+	PARAMETER
+}

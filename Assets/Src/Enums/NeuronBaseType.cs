@@ -1,0 +1,8 @@
+public enum NEURON_BASE_TYPE
+{
+	NONE,
+	EMITTER,
+	COLLECTOR,
+	INHIBITOR,
+	ACTION
+}

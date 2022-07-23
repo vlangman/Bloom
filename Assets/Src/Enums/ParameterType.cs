@@ -1,0 +1,8 @@
+public enum PARAMETER_TYPE
+{
+	WEIGHT,
+	LENGTH,
+	SPEED,
+	ANGLE,
+	POLARITY,
+}
