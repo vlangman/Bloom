@@ -4,16 +4,16 @@ public partial class Globals
 
 	public const int ParameterSize =
 	(sizeof(int) * 1) +
-	(Globals.GeneSize) +
+	// (Globals.GeneSize) +
 	(sizeof(bool) * 1) +
 	(sizeof(float) * 3);
 }
 
 
-public interface IParameter : IComponent
+public interface IParameter
 {
 	public PARAMETER_TYPE type { get; set; }
-	public Gene gene { get; set; }
+	// public Gene gene { get; set; }
 
 	//1 if value is negative 0 if positive
 	public bool significantBit { get; set; }

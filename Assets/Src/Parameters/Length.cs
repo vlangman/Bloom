@@ -17,7 +17,7 @@ public struct Length : IParameter
 		this.minValue = 10;
 		this.maxValue = 255;
 
-		this = (Length)ParameterFactory.GenerateParameter(this);
+		// this = (Length)ParameterFactory.GenerateParameter(this);
 	}
 
 

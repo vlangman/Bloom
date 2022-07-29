@@ -17,7 +17,7 @@ public struct Polarity : IParameter
 		this.minValue = -255;
 		this.maxValue = 255;
 
-		this = (Polarity)ParameterFactory.GenerateParameter(this);
+		// this = (Polarity)ParameterFactory.GenerateParameter(this);
 	}
 
 

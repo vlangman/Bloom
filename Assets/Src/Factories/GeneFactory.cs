@@ -45,9 +45,9 @@ public static class GeneFactory
 		Gene gene = new Gene
 		{
 			type = GENE_TYPE.NEURON,
-			value = (float)neuron.type,
-			hex = ToHex((int)neuron.type),
-			binary = ToBinary((int)neuron.type)
+			// value = (float)neuron.type,
+			// hex = ToHex((int)neuron.type),
+			// binary = ToBinary((int)neuron.type)
 		};
 		return gene;
 	}

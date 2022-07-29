@@ -1,3 +1,4 @@
+
 public static partial class Globals
 {
 
@@ -10,5 +11,10 @@ public static partial class Globals
 
 	//number of parameters per neuron
 	public const int ParameterCount = 4;
+
+	public const int UINT_SIZE = sizeof(uint);
+	public const int FLOAT_SIZE = sizeof(float);
+	public const int VECTOR2_SIZE = sizeof(float) * 2;
+	public const int VECTOR4_SIZE = VECTOR2_SIZE * 2;
 
 }

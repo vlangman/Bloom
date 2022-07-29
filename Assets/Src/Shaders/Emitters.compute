@@ -1,0 +1,22 @@
+#pragma kernel CalculateEmitters
+
+#define Continuous 0
+
+#include "globals.hlsl"
+
+AppendStructuredBuffer<uint> organismFiltered; //Filtered index
+RWStructuredBuffer<Organism> organismBuffer; //has to be same name with rendering shader
+RWStructuredBuffer<Neuron> neuronBuffer;
+
+
+void ContinuousEmitter(uint organismIndex)
+{
+	
+}
+
+
+[numthreads(16,16,1)]
+void CalculateEmitters (uint3 id : SV_DispatchThreadID)
+{
+	
+}

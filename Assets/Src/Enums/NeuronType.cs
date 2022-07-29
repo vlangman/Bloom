@@ -6,4 +6,5 @@ public enum NEURON_TYPE
 	//actions
 	MOVE_ACTION,
 	TURN_ACTION,
+	COLOUR_CHANGE_ACTION
 }

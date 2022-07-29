@@ -18,7 +18,7 @@ public struct Weight : IParameter
 		this.minValue = -4;
 		this.maxValue = 4;
 
-		this = (Weight)ParameterFactory.GenerateParameter(this);
+		// this = (Weight)ParameterFactory.GenerateParameter(this);
 	}
 
 

@@ -1,7 +1,7 @@
 Shader "Simulation"
 {
- 	Properties 
- 	{
+	Properties 
+	{
 		// _pSize("NeuronCount",Range(1,5)) = 2 //seems only work for Metal :(
 		//number of neurons per organism
 		_NeuronCount("NeuronCount",Range(1,10)) = 1
@@ -25,15 +25,8 @@ Shader "Simulation"
 			#pragma fragment frag
 			#include "UnityCG.cginc"
 			
-			struct Organism
-			{
-				uint idx;
-				uint alive;
-				float2 orientation;
-				float2 position;
-				float4 color;
-
-			};
+			#include "globals.hlsl"
+			
 			StructuredBuffer<Organism> organismBuffer;  //has to be same name with compute shader
 			StructuredBuffer<uint> organismFiltered;  //has to be same name with compute shader
 
@@ -56,14 +49,12 @@ Shader "Simulation"
 				//alive 
 				if(organismBuffer[inst].alive)
 				{
-					o.color = float4(1,screenSpace.y,screenSpace.x,1);
+					o.color = organismBuffer[inst].color;
 				}
 				else{
 					o.color = float4(1,screenSpace.y,screenSpace.x,0);
 				}	
-	
-
-
+				
 				return o;
 			}
 			
@@ -73,7 +64,7 @@ Shader "Simulation"
 			}
 			
 			ENDCG
-		
+			
 		}
 	}
 }

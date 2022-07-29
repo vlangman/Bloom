@@ -1,86 +1,85 @@
 using UnityEngine;
-using System.Collections;
+using System.Collections.Generic;
 
 public class ComputeOrganisms : MonoBehaviour
 {
-	//The stride passed when constructing the buffer must match structure size, be a multiple of 4 and less than 2048
-	struct Organism
-	{
-
-		public uint idx;//4 bytes 
-
-		public uint alive;//4  bytes
-
-		public Vector2 orientation;//8  bytes
-
-		public Vector2 position;//8  bytes
-
-		public Color color;// 16 bytes: (4*4)
-
-		public int GetSize()
-		{
-			return
-				//idx
-				4 +
-				// alive
-				4 +
-				// orientation
-				8 +
-				//position
-				8 +
-				//color
-				16;
-		}
-	};
 
 	public Material material;
 	public ComputeShader computeShader;
 
 	private int _kernelDirect;
+
+
+
+	private int[] args;
+
+	//ORGANISM
+	private ComputeBuffer argsBuffer;
+	private List<Organism> organismList;
 	private ComputeBuffer organismBuffer;
 	private ComputeBuffer organismFilteredResultBuffer;
-	private ComputeBuffer argsBuffer;
-	private int[] args;
-	private Organism[] organismList;
+
+	//NEURON
+	private List<Neuron> neuronList;
+	private ComputeBuffer neuronBuffer;
 
 
 	private Vector2 resolution = new Vector2(512, 512);
 	private uint organismCount = 0;
+	private uint neuronCount = 0;
 
 	private Bounds bounds;
 
 	void Start()
 	{
-
-		organismCount = (uint)(resolution.x * resolution.y);
 		//just to make sure the buffer are clean
 		release();
 
-		//kernels
-		_kernelDirect = computeShader.FindKernel("UpdateOrganism");
+		organismCount = (uint)(resolution.x * resolution.y);
+		neuronCount = organismCount * Globals.NeuronCount;
 
-		// Init organisms position
-		organismList = new Organism[organismCount];
+
+
+
+		// Init organisms
+		organismList = new List<Organism>();
+		neuronList = new List<Neuron>();
 		for (uint x = 0; x < resolution.x; x++)
 		{
 			for (uint y = 0; y < resolution.y; ++y)
 			{
+
+
 				// (row * length_of_row) + column; // Indexes
 				uint index = y * (uint)resolution.x + x;
 
-				if (x >= 200 && x <= 400 && y >= 200 && y <= 400)
-					organismList[index].alive = 1;
+				var Organism = OrganismFactory.CreateSlimeBase(index, ref neuronList);
 
-				organismList[index].idx = index;
-				organismList[index].position = new Vector2(x, y);
-				organismList[index].color = Color.yellow;
+				if (x >= 200 && x <= 400 && y >= 200 && y <= 400)
+					Organism.alive = 1;
+
+				Organism.position = new Vector2(x, y);
+				Organism.color = Color.yellow;
+				organismList.Add(Organism);
+
 			}
 		}
 
 
-		//organismBuffer, for rendering
-		organismBuffer = new ComputeBuffer((int)organismCount, organismList[0].GetSize());
+
+		//kernels 
+		_kernelDirect = computeShader.FindKernel("UpdateOrganism");
+
+
+		//organismBuffer,
+		Debug.Log($"ORGANISM SIZE : {Globals.OrganismSize}");
+		organismBuffer = new ComputeBuffer((int)organismCount, Globals.OrganismSize);
 		organismBuffer.SetData(organismList);
+
+		//organismBuffer,
+		Debug.Log($"NEURON SIZE : {Globals.NeuronSize}");
+		neuronBuffer = new ComputeBuffer((int)neuronCount, Globals.NeuronSize);
+		neuronBuffer.SetData(neuronList);
 
 		//filtered result buffer, storing only the idx value of a organism
 		organismFilteredResultBuffer = new ComputeBuffer((int)organismCount, sizeof(uint), ComputeBufferType.Append);

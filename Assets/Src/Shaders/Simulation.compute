@@ -1,32 +1,16 @@
 #pragma kernel UpdateOrganism
 
-const float PI = 3.141592655;
+#include "globals.hlsl"
 
-// #define Radians = PI/180.0;
-
-struct Organism
-{
-	uint idx;
-	uint alive;
-	float2 orientation;
-	float2 position;
-	float4 color;
-};
 AppendStructuredBuffer<uint> organismFiltered; //Filtered index
 RWStructuredBuffer<Organism> organismBuffer; //has to be same name with rendering shader
+RWStructuredBuffer<Neuron> neuronBuffer;
+
 float _time;
 float _deltaTime;
 float4 _resolution;
 
-float RandomZeroToOne(uint seed){
-    uint state = seed;
-	state ^= 2747636419;
-	state *= 2654435769;
-	state ^= state >> 16;
-	state *= 2654435769;
-	state ^= state >> 16;
-	return state / 4294967295.0;
-}
+
 
 float RandomSign(float value, uint seed){
 	if(RandomZeroToOne(value*seed) < 0.5)
@@ -40,7 +24,6 @@ float RandomNormalized(uint seed)
 }
 
 
-
 float RandomRange(uint seed ,float minimum, float maximum)
 {
 	return (RandomNormalized(seed) % (maximum - minimum + 1.0)) + minimum;
@@ -48,7 +31,6 @@ float RandomRange(uint seed ,float minimum, float maximum)
 
 float2 DegToVec(float degrees)
 {
-    
 	return float2(cos(degrees * PI / 180.0), sin(degrees * PI / 180.0));
 }
 
@@ -61,15 +43,15 @@ void UpdateOrganism (uint3 id : SV_DispatchThreadID)
 	uint idx = id.y + _resolution.y * id.x;
 	Organism organism =  organismBuffer[idx];
 
-
 	//Move the organisms
-	organism.orientation = float2(RandomNormalized(idx+_time), RandomNormalized(idx));
+	float seed = _time*_deltaTime;
+	organism.orientation = float2(RandomNormalized(idx+seed), RandomNormalized(idx-seed ));
 	// float2 nextMove = DegToVec(randomRange(idx,-360.0,360.0))*15.0;
-	organism.position += 	organism.orientation*10*_deltaTime;
+	organism.position += organism.orientation*10*_deltaTime;
 
 	// int bit = nextMove.x <= 0 ? 1 : 0;
 	//colour check
-	float4 colour = float4(organism.position.y/_resolution.y,1 ,0,1);
+	float4 colour = float4(1,1 ,1,1);
 	organism.color = colour;
 
 	//make update

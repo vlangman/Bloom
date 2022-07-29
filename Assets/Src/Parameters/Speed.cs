@@ -17,7 +17,7 @@ public struct Speed : IParameter
 		this.minValue = 1;
 		this.maxValue = 40;
 
-		this = (Speed)ParameterFactory.GenerateParameter(this);
+		// this = (Speed)ParameterFactory.GenerateParameter(this);
 	}
 
 

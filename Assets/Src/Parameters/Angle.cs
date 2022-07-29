@@ -18,7 +18,7 @@ public struct Angle : IParameter
 		this.minValue = -255;
 		this.maxValue = 255;
 
-		this = (Angle)ParameterFactory.GenerateParameter(this);
+		// this = (Angle)ParameterFactory.GenerateParameter(this);
 	}
 
 
