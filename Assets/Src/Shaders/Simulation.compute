@@ -1,10 +1,16 @@
 #pragma kernel UpdateOrganism
 
-#include "globals.hlsl"
+// #include "globals.hlsl"
 
-AppendStructuredBuffer<uint> organismFiltered; //Filtered index
-RWStructuredBuffer<Organism> organismBuffer; //has to be same name with rendering shader
+#include "Neurons/Emitters/emitter.hlsl"
+#include "Parameters/Parameter.hlsl"
+// #include "neuron.hlsl"
+
+RWStructuredBuffer<Organism> organismBuffer; 
 RWStructuredBuffer<Neuron> neuronBuffer;
+RWStructuredBuffer<Parameter> parameterBuffer; 
+ //Filtered index
+AppendStructuredBuffer<uint> organismFiltered;
 
 float _time;
 float _deltaTime;

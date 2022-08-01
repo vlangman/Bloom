@@ -304,4 +304,4 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   material: {fileID: 2100000, guid: 690682ef40eeca44abd16f7b68eb3e25, type: 2}
-  computeShader: {fileID: 7200000, guid: da7c090364b9b584c8c9adf4c1e516d7, type: 3}
+  computeNeurons: {fileID: 7200000, guid: 0efb9ff699ca5774185b5440beac0d35, type: 3}

@@ -1,50 +1,17 @@
-// using UnityEngine;
-// using System.Collections.Generic;
-// public static class ParameterFactory
-// {
-// 	public static IParameter GenerateParameter(IParameter parameter, bool rounded = false)
-// 	{
-// 		//generate random value for the parameter
-// 		parameter.value = Random.Range(parameter.minValue, parameter.maxValue + 1);
-// 		if (rounded)
-// 			parameter.value = Mathf.Round(parameter.value);
-// 		parameter.significantBit = parameter.value < 0 ? true : false;
-// 		parameter.gene = GeneFactory.ToGene(parameter);
-// 		return parameter;
-// 	}
+using UnityEngine;
+public static class ParameterFactory
+{
+	public static float GenerateParameterValue(bool rounded = false)
+	{
+		//generate random value for the parameter
+		float value = Random.Range(-128f, 129f);
+		if (rounded)
+			value = Mathf.Round(value);
 
-// 	public static List<IParameter> GenerateParameters(Neuron neuron)
-// 	{
-// 		foreach (var parameter in neuron.parameters)
-// 		{
-// 			parameter.Initialize();
-// 		}
-// 		neuron.Log();
-// 		return neuron.parameters;
-// 	}
+		//when adding gene format to 2dp (n2) for to store 2 bytes as parameter value for gene
+		// parameter.gene = GeneFactory.ToGene(parameter);
+		return value;
+	}
 
-// 	public static IParameter SetParameter(IParameter parameter, float value)
-// 	{
-// 		parameter.value = value;
-// 		parameter.significantBit = value < 0 ? true : false;
-// 		parameter.gene = GeneFactory.ToGene(parameter);
-// 		return parameter;
-// 	}
 
-// 	public static void OverrideParameter(PARAMETER_TYPE type, ref Neuron neuron, float value)
-// 	{
-
-// 		for (int i = 0; i < neuron.parameters.Count; i++)
-// 		{
-// 			if (neuron.parameters[i].type == type)
-// 			{
-// 				neuron.parameters[i] = SetParameter(neuron.parameters[i], value);
-// 				return;
-// 			}
-// 		}
-
-// 		throw new System.Exception($"Parameter {type.ToString()} not found in neuron of type {neuron.type.ToString()}");
-
-// 	}
-
-// }
+}

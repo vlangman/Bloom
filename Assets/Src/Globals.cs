@@ -17,4 +17,6 @@ public static partial class Globals
 	public const int VECTOR2_SIZE = sizeof(float) * 2;
 	public const int VECTOR4_SIZE = VECTOR2_SIZE * 2;
 
+	public const int BYTE_SIZE = sizeof(byte);
+
 }

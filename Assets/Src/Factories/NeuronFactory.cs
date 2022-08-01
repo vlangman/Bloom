@@ -5,12 +5,12 @@ using System.Collections.Generic;
 public static class NeuronTypeGenerator
 {
 
-	public static Neuron GenerateType(NEURON_TYPE type)
+	public static INeuron GenerateType(NEURON_TYPE type)
 	{
 		switch (type)
 		{
 			// case NEURON_TYPE.CONTINUOUS_EMITTER:
-			// 	return new ContinuousEmitter();
+			// 	return newPeriodicEmitter();
 			// case NEURON_TYPE.POPULATION_LINE_EMITTER:
 			// 	return new PopulationLineEmitter();
 			// case NEURON_TYPE.MOVE_ACTION:
@@ -26,27 +26,27 @@ public static class NeuronTypeGenerator
 
 public class NeuronFactory
 {
-	public List<Neuron> Neurons { get; set; } = new List<Neuron>();
+	public List<INeuron> Neurons { get; set; } = new List<INeuron>();
 	public List<Connection> Connections { get; set; } = new List<Connection>();
 
 	//generate a new neuron of random NEURON_TYPE 
 	//generate a new gene for the neuron with random parameters within the range of the neuron type parameters
 	//add the neuron to the list of neurons
 	//return the neuron
-	public Neuron GenerateRandomNeuron(uint index)
+	public INeuron GenerateRandomNeuron(uint index)
 	{
 		int totalTypes = Enum.GetNames(typeof(NEURON_TYPE)).Length;
 		int randomType = UnityEngine.Random.Range(0, totalTypes);
-		Neuron neuron = NeuronTypeGenerator.GenerateType((NEURON_TYPE)randomType);
+		INeuron neuron = NeuronTypeGenerator.GenerateType((NEURON_TYPE)randomType);
 		//initialize the neurons properties
 		neuron.neuronIndex = index;
 		Neurons.Add(neuron);
 		return neuron;
 	}
 
-	public Neuron GenerateNeuron(NEURON_TYPE neuronType, uint index)
+	public INeuron GenerateNeuron(NEURON_TYPE neuronType, uint index)
 	{
-		Neuron neuron = NeuronTypeGenerator.GenerateType(neuronType);
+		INeuron neuron = NeuronTypeGenerator.GenerateType(neuronType);
 		//initialize the neurons properties
 		neuron.neuronIndex = index;
 		Neurons.Add(neuron);

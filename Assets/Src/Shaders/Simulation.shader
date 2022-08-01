@@ -11,6 +11,7 @@ Shader "Simulation"
 
 		// //number of parameters per neuron
 		_ParameterCount("ParameterCount",int) = 4
+
 	}
 
 	SubShader 
@@ -26,6 +27,7 @@ Shader "Simulation"
 			#include "UnityCG.cginc"
 			
 			#include "globals.hlsl"
+			#include "Organisms/organism.hlsl"
 			
 			StructuredBuffer<Organism> organismBuffer;  //has to be same name with compute shader
 			StructuredBuffer<uint> organismFiltered;  //has to be same name with compute shader

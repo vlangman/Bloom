@@ -3,7 +3,7 @@ using System.Collections.Generic;
 
 public static class OrganismFactory
 {
-	public static Organism CreateSlimeBase(uint index, ref List<Neuron> neuronBuffer)
+	public static Organism CreateSlimeBase(uint index, ref List<INeuron> neuronBuffer)
 	{
 		NeuronFactory neuronFactory = new NeuronFactory();
 		Organism organism = new Organism();
@@ -20,8 +20,8 @@ public static class OrganismFactory
 
 		// ConnectionFactory.CreateConnection(ref continuousEmitter, ref moveAction, 1f);
 		// ConnectionFactory.CreateConnection(ref continuousEmitter, ref TurnAction, 1f);
-		Neuron neuron = new Neuron();
-		uint neuronIndex = (uint)neuronBuffer.Count;
+		INeuron neuron = new PeriodicEmitter();
+		uint neuronIndex = (uint)neuronBuffer.Count * Globals.NeuronCount + 1;
 		neuron.neuronIndex = neuronIndex;
 		neuronBuffer.Add(neuron);
 

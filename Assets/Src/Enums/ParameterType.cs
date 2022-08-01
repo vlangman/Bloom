@@ -5,4 +5,7 @@ public enum PARAMETER_TYPE
 	SPEED,
 	ANGLE,
 	POLARITY,
+	TIME,
+	STRENGTH,
+
 }
