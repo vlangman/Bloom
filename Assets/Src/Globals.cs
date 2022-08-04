@@ -1,10 +1,9 @@
 
 public static partial class Globals
 {
-
 	//ORGANISM
 	//number of neurons per organism
-	public const int NeuronCount = 1;
+	public const int NeuronCount = 2;
 	//NEURONS
 	//number of connections per neuron
 	public const int ConnectionCount = 1;
@@ -17,6 +16,6 @@ public static partial class Globals
 	public const int VECTOR2_SIZE = sizeof(float) * 2;
 	public const int VECTOR4_SIZE = VECTOR2_SIZE * 2;
 
-	public const int BYTE_SIZE = sizeof(byte);
+	const int BYTE_SIZE = sizeof(byte);
 
 }

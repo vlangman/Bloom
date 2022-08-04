@@ -1,9 +1,9 @@
 using UnityEngine;
-public struct PeriodicEmitter : INeuron
+public struct PeriodicSignal : INeuron
 {
 	public uint neuronIndex { get; set; }
 	public NEURON_BASE_TYPE baseType { get; set; }
-	public NEURON_TYPE type { get; set; }
+	public uint type { get; set; }
 
 	public Parameter parameter1 { get; set; }
 	public Parameter parameter2 { get; set; }
@@ -16,7 +16,7 @@ public struct PeriodicEmitter : INeuron
 		return new Neuron
 		{
 			baseType = NEURON_BASE_TYPE.EMITTER,
-			type = NEURON_TYPE.PERIODIC_EMITTER,
+			type = (uint)EMITTER_TYPE.PERIODIC_SIGNAL,
 
 			parameter1 = new Parameter
 			{

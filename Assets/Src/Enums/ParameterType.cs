@@ -7,5 +7,7 @@ public enum PARAMETER_TYPE
 	POLARITY,
 	TIME,
 	STRENGTH,
+	SIZE,
+	DENSITY
 
 }

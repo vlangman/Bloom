@@ -1,7 +1,8 @@
 #include "../neuron.hlsl"
+#include "../../globals.hlsl"
 
-class PeriodicEmitter : INeuron{
-	Neuron Compute(Neuron neuron){
+class PeriodicSignal : INeuron{
+	void Compute(inout Neuron neuron, inout Organism organism){
 		//param 1 is period
 		float period = neuron.parameter1.value;
 		// param2 is internalTimeElapsed
@@ -22,7 +23,6 @@ class PeriodicEmitter : INeuron{
 		}
 		
 		neuron.parameter2.value += programState._deltaTime;
-		return neuron;
 	}
 };
-static PeriodicEmitter _periodicEmitter;
+static PeriodicSignal _periodicSignal;

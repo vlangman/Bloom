@@ -17,7 +17,7 @@ public partial class Globals
 public interface INeuron : IComponent<Neuron>
 {
 	public uint neuronIndex { get; set; }
-	public NEURON_TYPE type { get; set; }
+	public uint type { get; set; }
 	public NEURON_BASE_TYPE baseType { get; set; }
 
 	public Parameter parameter1 { get; set; }
@@ -32,7 +32,7 @@ public struct Neuron
 {
 
 	public uint neuronIndex { get; set; }
-	public NEURON_TYPE type { get; set; }
+	public uint type { get; set; }
 	public NEURON_BASE_TYPE baseType { get; set; }
 	public float value { get; set; }
 

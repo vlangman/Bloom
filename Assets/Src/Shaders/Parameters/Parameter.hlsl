@@ -8,8 +8,8 @@
 #define POLARITY 4
 #define TIME 5,
 #define STRENGTH  6
+#define SIZE = 7
 
-#define PARAMETER_LIST_SIZE  STRENGTH+1
 
 
 struct Parameter

@@ -2,30 +2,16 @@
 #ifndef __GLOBALS
 #define __GLOBALS
 
-
-
-
 const float PI = 3.141592655;
 
 
-#define GlobalNeuronCount 1
+#define GlobalNeuronCount 2
 #define GlobalConnectionCount 1
 #define GlobalParameterCount 4
 
-#define Resolution float2(32,32)
 #define OrganismBufferSize Resolution.x*Resolution.y
 
 
-struct Organism
-{
-	uint idx;
-	uint alive;
-	float2 orientation;
-	float2 position;
-	float4 color; 
-
-	uint neuronsStartIndex;
-};
 
 
 struct ProgramState
@@ -36,7 +22,7 @@ struct ProgramState
 };
 static ProgramState programState;
 
-void InitializeProgramState(float time, float deltaTime, float4 resolution){
+void UpdateProgramState(float time, float deltaTime, float4 resolution){
 	programState._time = time;
 	programState._deltaTime = deltaTime;
 	programState._resolution = resolution;

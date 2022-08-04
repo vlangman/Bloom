@@ -20,13 +20,17 @@ public static class OrganismFactory
 
 		// ConnectionFactory.CreateConnection(ref continuousEmitter, ref moveAction, 1f);
 		// ConnectionFactory.CreateConnection(ref continuousEmitter, ref TurnAction, 1f);
-		INeuron neuron = new PeriodicEmitter();
-		uint neuronIndex = (uint)neuronBuffer.Count * Globals.NeuronCount + 1;
-		neuron.neuronIndex = neuronIndex;
-		neuronBuffer.Add(neuron);
+		INeuron pheromoneSignal = new PeriodicSignal();
+		INeuron releasePheromone = new ReleasePheromone();
+		//neurons are contained in a 1d array so the neuronStartIndex of an organism is (number of neurons in the buffer) + 1
+		uint neuronStartIndex = (uint)neuronBuffer.Count + 1;
+		pheromoneSignal.neuronIndex = neuronStartIndex;
+		releasePheromone.neuronIndex = neuronStartIndex + 1;
+		neuronBuffer.Add(pheromoneSignal);
+		neuronBuffer.Add(releasePheromone);
 
 
-		organism.neuronsStartIndex = neuronIndex;
+		organism.neuronsStartIndex = neuronStartIndex;
 
 		// organism.Log();
 		return organism;

@@ -8,9 +8,8 @@
 
 RWStructuredBuffer<Organism> organismBuffer; 
 RWStructuredBuffer<Neuron> neuronBuffer;
-RWStructuredBuffer<Parameter> parameterBuffer; 
+// RWStructuredBuffer<Parameter> parameterBuffer; 
  //Filtered index
-AppendStructuredBuffer<uint> organismFiltered;
 
 float _time;
 float _deltaTime;
@@ -41,7 +40,7 @@ float2 DegToVec(float degrees)
 }
 
 
-[numthreads(16,16,1)]
+[numthreads(64,64,1)]
 void UpdateOrganism (uint3 id : SV_DispatchThreadID)
 {
 	//take the actual organism id in array
@@ -51,9 +50,9 @@ void UpdateOrganism (uint3 id : SV_DispatchThreadID)
 
 	//Move the organisms
 	float seed = _time*_deltaTime;
-	organism.orientation = float2(RandomNormalized(idx+seed), RandomNormalized(idx-seed ));
+	// organism.orientation = float2(RandomNormalized(idx+seed), RandomNormalized(idx-seed ));
 	// float2 nextMove = DegToVec(randomRange(idx,-360.0,360.0))*15.0;
-	organism.position += organism.orientation*10*_deltaTime;
+	// organism.position += organism.orientation*10*_deltaTime;
 
 	// int bit = nextMove.x <= 0 ? 1 : 0;
 	//colour check

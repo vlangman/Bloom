@@ -1,4 +1,4 @@
-public struct UpdateColour : INeuron
+public struct ReleasePheromone : INeuron
 {
 	public uint neuronIndex { get; set; }
 	public NEURON_BASE_TYPE baseType { get; set; }
@@ -15,8 +15,17 @@ public struct UpdateColour : INeuron
 		return new Neuron
 		{
 			baseType = NEURON_BASE_TYPE.ACTION,
-			type = (uint)ACTION_TYPE.UPDATE_ORGANISM_COLOUR
+			type = (uint)ACTION_TYPE.RELEASE_PHEROMONE,
+			parameter1 = new Parameter
+			{
+				//used to store density released
+				type = PARAMETER_TYPE.DENSITY,
+				value = 1f
+			}
 		};
+
+
+
 
 	}
 

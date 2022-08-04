@@ -1,50 +1,43 @@
 
-#include "../globals.hlsl" 
+
 #include "../Parameters/Parameter.hlsl"
+#include "../Organisms/organism.hlsl"
 
 #ifndef __NEURON
 #define __NEURON
 
 
-// NEURON_BASE_TYPE
 	#define EMITTER 0
 	#define COLLECTOR 1
 	#define ACTION 2
 
-	#define NEURON_BASE_TYPE_LIST_SIZE ACTION+1
-//end NEURON_BASE_TYPE
 
-
-// NEURON_TYPE
 	//emitters
-	#define PERIODIC_EMITTER 0
+	#define PERIODIC_SIGNAL 0
+	#define PHEROMONE_GRID_SENSOR 1
 	//actions
-	#define UPDATE_COLOUR_ACTION 1
-
-	#define NEURON_TYPE_LIST_SIZE UPDATE_COLOUR_ACTION+1
-//end NEURON_TYPE
+	#define UPDATE_ORGANISM_COLOUR 0
+	#define PHEROMONE
 
 
+	struct Neuron
+	{
+		uint neuronIndex;
+		uint type;
+		uint baseType;
 
-struct Neuron
-{
-	uint neuronIndex;
-	uint type;
-	uint baseType;
+		float value;
 
-	float value;
+		Parameter parameter1;
+		Parameter parameter2;
+		Parameter parameter3;
+		Parameter parameter4;
+		
+	};
 
-	Parameter parameter1;
-	Parameter parameter2;
-	Parameter parameter3;
-	Parameter parameter4;
-
-};
-
-
-interface INeuron {
-	Neuron Compute(Neuron neuron);
-};
+	interface INeuron {
+		void Compute(inout Neuron neuron, inout Organism organism);
+	};
 
 
-#endif // __NEURON
+#endif
