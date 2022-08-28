@@ -9,7 +9,7 @@ public static class OrganismFactory
 		Organism organism = new Organism();
 		organism.idx = index;
 		organism.position = new Vector2(0, 0);
-		organism.color = new Vector4(0, 1, 1, 1);
+		organism.colour = new Vector4(0, 1, 1, 1);
 
 		// var forwardLineSensor = neuronFactory.GenerateNeuron(NEURON_TYPE.POPULATION_LINE_EMITTER);
 		// ParameterFactory.OverrideParameter(PARAMETER_TYPE.ANGLE, ref forwardLineSensor, 0.0f);

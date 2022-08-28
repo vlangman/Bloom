@@ -22,8 +22,9 @@ public struct PeriodicSignal : INeuron
 			{
 				//used to store the period/frequency of the emitter
 				type = PARAMETER_TYPE.TIME,
-				value = 0.00001f
+				value = 1f
 			},
+
 			parameter2 = new Parameter
 			{
 				//used to store the elapsed time for calculating if period has elapsed

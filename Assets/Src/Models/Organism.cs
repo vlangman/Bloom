@@ -6,14 +6,14 @@ public partial class Globals
 
 	public const int OrganismSize =
 			//idx
-			sizeof(uint) +
+			UINT_SIZE +
 			// alive
 			UINT_SIZE +
 			// orientation
 			VECTOR2_SIZE +
 			//position
 			VECTOR2_SIZE +
-			//color
+			//colour
 			VECTOR4_SIZE +
 			 //neurons
 			 UINT_SIZE;
@@ -32,7 +32,7 @@ public struct Organism
 
 	public Vector2 position;//8  bytes
 
-	public Color color;// 16 bytes: (4*4)
+	public Color colour;// 16 bytes: (4*4)
 
 	public uint neuronsStartIndex;// 4 bytes
 

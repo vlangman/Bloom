@@ -2,6 +2,8 @@
 #ifndef __GLOBALS
 #define __GLOBALS
 
+
+
 const float PI = 3.141592655;
 
 
@@ -40,6 +42,15 @@ float RandomZeroToOne(uint seed){
 	return state / 4294967295.0;
 }
 
+uint Index(uint2 id){
+	// x + y * num_cols
+	return id.y + id.x * programState._resolution.x;
+}
+
+uint Index(float2 id){
+	// x + y * num_cols
+	return id.y + id.x * programState._resolution.x;
+}
 
 float RandomSign(float value, uint seed){
 	if(RandomZeroToOne(value*seed) < 0.5)

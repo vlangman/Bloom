@@ -4,7 +4,7 @@
 #include "Emitters/periodicSignal.hlsl"
 //actions
 #include "Actions/updateOrganismColour.hlsl"
-
+#include "Actions/releasePheromone.hlsl"
 
 #ifndef __NEURON_LOOKUP
 #define __NEURON_LOOKUP
@@ -23,6 +23,7 @@ void ProcessNeuron(inout Neuron neuron, inout Organism organism)
 	{
 		switch(neuron.type){
 			case UPDATE_ORGANISM_COLOUR: _updateOrganismAction.Compute(neuron,organism); break;
+			case RELEASE_PHEROMONE: _releasePheromone.Compute(neuron,organism); break;
 			default: break;
 		};
 	}

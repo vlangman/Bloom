@@ -599,7 +599,7 @@
     "m_Type": "UnityEditor.ShaderGraph.ColorRGBMaterialSlot",
     "m_ObjectId": "c9677d829216471ca67bdb16339775d2",
     "m_Id": 0,
-    "m_DisplayName": "Base Color",
+    "m_DisplayName": "Base colour",
     "m_SlotType": 0,
     "m_Hidden": false,
     "m_ShaderOutputName": "BaseColor",

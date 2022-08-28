@@ -1,4 +1,5 @@
 
+//include buffers here for all iNeuron children
 
 #include "../Parameters/Parameter.hlsl"
 #include "../Organisms/organism.hlsl"
@@ -7,17 +8,11 @@
 #define __NEURON
 
 
+
+	//neuron types
 	#define EMITTER 0
 	#define COLLECTOR 1
 	#define ACTION 2
-
-
-	//emitters
-	#define PERIODIC_SIGNAL 0
-	#define PHEROMONE_GRID_SENSOR 1
-	//actions
-	#define UPDATE_ORGANISM_COLOUR 0
-	#define PHEROMONE
 
 
 	struct Neuron
@@ -33,10 +28,6 @@
 		Parameter parameter3;
 		Parameter parameter4;
 		
-	};
-
-	interface INeuron {
-		void Compute(inout Neuron neuron, inout Organism organism);
 	};
 
 

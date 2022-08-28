@@ -4,8 +4,9 @@ using System.Collections.Generic;
 public class ComputeOrganisms : MonoBehaviour
 {
 
-	public Material material;
-	public ComputeShader computeNeurons;
+	public Material organismMaterial;
+	public Material pheromoneMaterial;
+	public ComputeShader computeSimulation;
 
 	private Dictionary<int, ComputeShader> _kernels = new Dictionary<int, ComputeShader>();
 
@@ -28,7 +29,7 @@ public class ComputeOrganisms : MonoBehaviour
 	private List<Neuron> pheromoneList = new List<Neuron>();
 	private ComputeBuffer pheromoneBuffer;
 
-	private Vector2 resolution = new Vector2(1024, 1024);
+	private Vector2 resolution = new Vector2(512, 512);
 	private uint organismCount = 0;
 	private uint neuronCount = 0;
 
@@ -55,7 +56,7 @@ public class ComputeOrganisms : MonoBehaviour
 			(int)0, //start vertex location
 			(int)0 //start instance location
 		};
-		argsBuffer = new ComputeBuffer(args.Length, sizeof(int), ComputeBufferType.IndirectArguments);
+		argsBuffer = new ComputeBuffer(args.Length, Globals.UINT_SIZE, ComputeBufferType.IndirectArguments);
 		argsBuffer.SetData(args);
 
 		//just a big enough bounds for drawing
@@ -73,34 +74,30 @@ public class ComputeOrganisms : MonoBehaviour
 			_kernels[kernelDirect].SetFloat("_deltaTime", Time.deltaTime);
 			_kernels[kernelDirect].SetFloat("_time", Time.time);
 			_kernels[kernelDirect].SetVector("_resolution", resolution);
-			_kernels[kernelDirect].Dispatch(kernelDirect, (int)resolution.x / 32, (int)resolution.y / 32, 1);
+			_kernels[kernelDirect].Dispatch(kernelDirect, 256, 1, 1);
 		}
-
 
 
 		//Copy Count - visually no change but this is necessary in terms of performance!
 		//because without this, shader will draw full amount of organisms, just overlapping
 		//Check Profiler > GPU > Hierarchy search Graphics.DrawProcedural > GPU time
-		//4 is the offset byte. "organismCount" is the second int in args[], and 1 int = 4 bytes
-		ComputeBuffer.CopyCount(organismFilteredResultBuffer, argsBuffer, 4);
+		//4 is the offset byte. "organismCount" is the second int in args[], and 1 uint = 4 bytes
+		ComputeBuffer.CopyCount(organismFilteredResultBuffer, argsBuffer, Globals.UINT_SIZE);
 
 		//Draw
 		//3*4 is the offset byte, where the indirect draw in args starts
-		Graphics.DrawProceduralIndirect(material, bounds, MeshTopology.Points, argsBuffer, 0);
+		Graphics.DrawProceduralIndirect(organismMaterial, bounds, MeshTopology.Points, argsBuffer, 0);
 	}
 
 	void InitializeBuffers()
 	{
-		uint pixelCount = (uint)(resolution.x * resolution.y);
-
 		//setup all the kernels for lookup later
-		_kernels.Add(computeNeurons.FindKernel("ProcessNeurons"), computeNeurons);
+		_kernels.Add(computeSimulation.FindKernel("ProcessNeurons"), computeSimulation);
+		_kernels.Add(computeSimulation.FindKernel("ProcessPheromones"), computeSimulation);
 
-
-		Debug.Log($"ORGANISM SIZE: ${Globals.OrganismSize} BUFFER SIZE : {Globals.OrganismSize * pixelCount / 1e6} MB");
-		Debug.Log($"NEURON SIZE: ${Globals.NeuronSize} BUFFER SIZE : {Globals.NeuronSize * pixelCount / 1e6} MB");
-		Debug.Log($"PHEROMONE SIZE: ${Globals.PheromoneSize} BUFFER SIZE : {Globals.PheromoneSize * pixelCount / 1e6} MB");
-
+		Debug.Log($"ORGANISM SIZE: ${Globals.OrganismSize} BUFFER SIZE : {Globals.OrganismSize * organismCount / 1e6} MB");
+		Debug.Log($"NEURON SIZE: ${Globals.NeuronSize} BUFFER SIZE : {Globals.NeuronSize * organismCount / 1e6} MB");
+		Debug.Log($"PHEROMONE SIZE: ${Globals.PheromoneSize} BUFFER SIZE : {Globals.PheromoneSize * organismCount / 1e6} MB");
 
 		//organismBuffer,
 		organismBuffer = new ComputeBuffer((int)organismCount, Globals.OrganismSize);
@@ -110,20 +107,26 @@ public class ComputeOrganisms : MonoBehaviour
 		neuronBuffer = new ComputeBuffer((int)neuronCount, Globals.NeuronSize);
 		neuronBuffer.SetData(neuronList);
 
-		//organisms neuron buffer,
-		pheromoneBuffer = new ComputeBuffer((int)pixelCount, Globals.PheromoneSize);
-		pheromoneBuffer.SetData(new List<Pheromone>((int)(resolution.x * resolution.y)));
+		//pheromone buffer ,
+		pheromoneBuffer = new ComputeBuffer((int)organismCount, Globals.PheromoneSize);
+		List<Pheromone> data = new List<Pheromone>((int)organismCount);
+		// for (int i = 0; i < organismCount; i++)
+		// {
+		// 	data.Add(new Pheromone
+		// 	{
+		// 		colour = new Vector4(1, 0, 0, 0.6f)
+		// 	});
+		// }
 
-
-		//neuron lookup buffer,
-		// var neuronTypeCount = 2;
-		// neuronLookupBuffer = new ComputeBuffer(neuronTypeCount, Globals.FLOAT_SIZE, ComputeBufferType.Append);
-
+		pheromoneBuffer.SetData(data);
 
 		//filtered result buffer, storing only the idx value of a organism
-		organismFilteredResultBuffer = new ComputeBuffer((int)organismCount, sizeof(uint), ComputeBufferType.Append);
-		material.SetBuffer("organismBuffer", organismBuffer);
-		material.SetBuffer("organismResult", organismFilteredResultBuffer);
+		organismFilteredResultBuffer = new ComputeBuffer((int)organismCount, Globals.UINT_SIZE, ComputeBufferType.Append);
+		organismMaterial.SetBuffer("organismBuffer", organismBuffer);
+		organismMaterial.SetBuffer("organismResult", organismFilteredResultBuffer);
+		organismMaterial.SetBuffer("pheromoneBuffer", pheromoneBuffer);
+
+
 
 
 		//set the buffers for all compute shaders
@@ -132,11 +135,9 @@ public class ComputeOrganisms : MonoBehaviour
 			_kernels[kernelDirect].SetBuffer(kernelDirect, "organismFiltered", organismFilteredResultBuffer);
 			_kernels[kernelDirect].SetBuffer(kernelDirect, "organismBuffer", organismBuffer);
 			_kernels[kernelDirect].SetBuffer(kernelDirect, "neuronBuffer", neuronBuffer);
-			// _kernels[kernelDirect].SetBuffer(kernelDirect, "neuronLookupBuffer", neuronLookupBuffer);
+			_kernels[kernelDirect].SetBuffer(kernelDirect, "pheromoneBuffer", pheromoneBuffer);
 		}
 	}
-
-
 
 	void GenerateTestData()
 	{
@@ -148,16 +149,26 @@ public class ComputeOrganisms : MonoBehaviour
 			{
 
 
-				// (row * length_of_row) + column; // Indexes
+				// Indexes
+				// (row * length_of_row) + column; 
 				uint index = y * (uint)resolution.x + x;
 
 				var Organism = OrganismFactory.CreateSlimeBase(index, ref prefabNeurons);
 
 
-				Organism.alive = 1;
+
 
 				Organism.position = new Vector2(x, y);
-				Organism.color = Color.yellow;
+				Organism.colour = new Vector4(0, 0, 1, 1);
+
+				Organism.alive = 0;
+				if (x == 256 && y == 256)
+				{
+					Organism.alive = 1;
+					Organism.colour = new Vector4(1, 1, 1, 1);
+				}
+
+
 				organismList.Add(Organism);
 
 			}
@@ -177,6 +188,7 @@ public class ComputeOrganisms : MonoBehaviour
 			organismFilteredResultBuffer.Dispose();
 			organismFilteredResultBuffer.Release();
 			organismFilteredResultBuffer = null;
+
 		}
 		if (organismBuffer != null)
 		{
@@ -195,6 +207,12 @@ public class ComputeOrganisms : MonoBehaviour
 			argsBuffer.Dispose();
 			argsBuffer.Release();
 			argsBuffer = null;
+		}
+		if (pheromoneBuffer != null)
+		{
+			pheromoneBuffer.Dispose();
+			pheromoneBuffer.Release();
+			pheromoneBuffer = null;
 		}
 	}
 	void OnDestroy()

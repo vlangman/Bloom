@@ -1,4 +1,4 @@
-#include "../neuron.hlsl"
+#include "../iNeuron.hlsl"
 #include "../../globals.hlsl"
 
 class PeriodicSignal : INeuron{
@@ -19,7 +19,10 @@ class PeriodicSignal : INeuron{
 			}
 			else{
 				neuron.value = strength;
+				organism.colour = float4(1,1,1,1);
 			}
+		}else{
+				organism.colour = float4(1,1,1,0);
 		}
 		
 		neuron.parameter2.value += programState._deltaTime;
