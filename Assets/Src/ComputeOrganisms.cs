@@ -1,16 +1,18 @@
 using UnityEngine;
 using System.Collections.Generic;
-
+using UnityEngine.Experimental.Rendering;
+using ComputeShaderUtility;
 public class ComputeOrganisms : MonoBehaviour
 {
 
 	public Material organismMaterial;
 	public Material pheromoneMaterial;
 	public ComputeShader computeSimulation;
+	public Transform PheromoneLayer;
+
+	// //PRIVATE
 
 	private Dictionary<int, ComputeShader> _kernels = new Dictionary<int, ComputeShader>();
-
-
 
 	private int[] args;
 
@@ -29,7 +31,7 @@ public class ComputeOrganisms : MonoBehaviour
 	private List<Neuron> pheromoneList = new List<Neuron>();
 	private ComputeBuffer pheromoneBuffer;
 
-	private Vector2 resolution = new Vector2(512, 512);
+	private Vector2 resolution = new Vector2(32, 32);
 	private uint organismCount = 0;
 	private uint neuronCount = 0;
 
@@ -61,10 +63,38 @@ public class ComputeOrganisms : MonoBehaviour
 
 		//just a big enough bounds for drawing
 		bounds = new Bounds(Vector3.zero, new Vector3(resolution.x, resolution.y, 1));
+
+
+
+		transform.GetComponentInChildren<MeshRenderer>().material.mainTexture = organismTexture;
+		PheromoneLayer.GetComponentInChildren<MeshRenderer>().material.mainTexture = pheromoneTexture;
+
+	}
+	public FilterMode filterMode = FilterMode.Point;
+	public GraphicsFormat format = ComputeHelper.defaultGraphicsFormat;
+	[SerializeField, HideInInspector] protected RenderTexture organismTexture;
+	[SerializeField, HideInInspector] protected RenderTexture pheromoneTexture;
+
+	void BindTextures()
+	{
+		// Create render textures
+		ComputeHelper.CreateRenderTexture(ref organismTexture, (int)resolution.x, (int)resolution.y, filterMode, format);
+		ComputeHelper.CreateRenderTexture(ref pheromoneTexture, (int)resolution.x, (int)resolution.y, filterMode, format);
+
+		organismTexture.enableRandomWrite = true;
+		pheromoneTexture.enableRandomWrite = true;
+
+		// Assign textures
+		computeSimulation.SetTexture(computeSimulation.FindKernel("ProcessNeurons"), "organismTexture", organismTexture);
+		computeSimulation.SetTexture(computeSimulation.FindKernel("ProcessNeurons"), "pheromoneTexture", pheromoneTexture);
+
+		computeSimulation.SetTexture(computeSimulation.FindKernel("ProcessPheromones"), "pheromoneTexture", pheromoneTexture);
+
 	}
 
 	void Update()
 	{
+		ClearOutRenderTexture(ref organismTexture);
 		//Reset count
 		organismFilteredResultBuffer.SetCounterValue(0);
 
@@ -74,7 +104,8 @@ public class ComputeOrganisms : MonoBehaviour
 			_kernels[kernelDirect].SetFloat("_deltaTime", Time.deltaTime);
 			_kernels[kernelDirect].SetFloat("_time", Time.time);
 			_kernels[kernelDirect].SetVector("_resolution", resolution);
-			_kernels[kernelDirect].Dispatch(kernelDirect, 256, 1, 1);
+			_kernels[kernelDirect].SetInt("_seed", Random.Range(int.MinValue, int.MaxValue));
+			_kernels[kernelDirect].Dispatch(kernelDirect, (int)resolution.x, (int)resolution.y, 1);
 		}
 
 
@@ -82,11 +113,11 @@ public class ComputeOrganisms : MonoBehaviour
 		//because without this, shader will draw full amount of organisms, just overlapping
 		//Check Profiler > GPU > Hierarchy search Graphics.DrawProcedural > GPU time
 		//4 is the offset byte. "organismCount" is the second int in args[], and 1 uint = 4 bytes
-		ComputeBuffer.CopyCount(organismFilteredResultBuffer, argsBuffer, Globals.UINT_SIZE);
+		// ComputeBuffer.CopyCount(organismFilteredResultBuffer, argsBuffer, Globals.UINT_SIZE);
 
 		//Draw
 		//3*4 is the offset byte, where the indirect draw in args starts
-		Graphics.DrawProceduralIndirect(organismMaterial, bounds, MeshTopology.Points, argsBuffer, 0);
+		// Graphics.DrawProceduralIndirect(organismMaterial, bounds, MeshTopology.Points, argsBuffer, 0);
 	}
 
 	void InitializeBuffers()
@@ -126,7 +157,7 @@ public class ComputeOrganisms : MonoBehaviour
 		organismMaterial.SetBuffer("organismResult", organismFilteredResultBuffer);
 		organismMaterial.SetBuffer("pheromoneBuffer", pheromoneBuffer);
 
-
+		this.BindTextures();
 
 
 		//set the buffers for all compute shaders
@@ -156,13 +187,11 @@ public class ComputeOrganisms : MonoBehaviour
 				var Organism = OrganismFactory.CreateSlimeBase(index, ref prefabNeurons);
 
 
-
-
 				Organism.position = new Vector2(x, y);
 				Organism.colour = new Vector4(0, 0, 1, 1);
 
 				Organism.alive = 0;
-				if (x == 256 && y == 256)
+				if (x > 10 && x < 20 && y > 10 && y < 20)
 				{
 					Organism.alive = 1;
 					Organism.colour = new Vector4(1, 1, 1, 1);
@@ -180,6 +209,16 @@ public class ComputeOrganisms : MonoBehaviour
 		});
 
 	}
+
+	public void ClearOutRenderTexture(ref RenderTexture renderTexture)
+	{
+		RenderTexture rt = RenderTexture.active;
+		RenderTexture.active = renderTexture;
+		GL.Clear(true, true, Color.clear);
+		RenderTexture.active = rt;
+	}
+
+
 
 	private void release()
 	{

@@ -11,5 +11,7 @@ uniform RWStructuredBuffer<Organism> organismBuffer : register(u1); //has to be 
 uniform RWStructuredBuffer<Neuron> neuronBuffer : register(u2);
 uniform RWStructuredBuffer<Pheromone> pheromoneBuffer : register(u3);
 
+uniform RWTexture2D<float4> organismTexture;
+uniform RWTexture2D<float4> pheromoneTexture;
 
 #endif

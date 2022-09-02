@@ -4,16 +4,17 @@
 // ***** NB rule of thumb *****
 // always add new includes under these 
 // hlsl error reporting (or my cs skill) is garbage and will lead you to the wrong file, *[if the error resides in newly included file]
-#include "globals.hlsl"
-#include "Neurons/neuronProcessor.hlsl"
 
-#include "buffers.hlsl"
+#include "Neurons/neuronProcessor.hlsl"
+#include "Organisms/organismController.hlsl"
+#include "Pheromones/pheromoneController.hlsl"
 
 
 float _time;
 float _deltaTime;
 float4 _resolution;
-#define numThreads 1024
+int _seed;
+#define numThreads 32
 
 
 void ProcessOrganismNeurons(uint TYPE, inout Organism organism){
@@ -34,99 +35,64 @@ void ProcessOrganismNeurons(uint TYPE, inout Organism organism){
 
 }
 
-[numthreads(numThreads,1,1)]
+
+
+[numthreads(numThreads,numThreads,1)]
 void ProcessNeurons (uint3 id : SV_DispatchThreadID)
 {
 	
-	UpdateProgramState(_time,_deltaTime,_resolution);
+	UpdateProgramState(id, _time,_deltaTime,_resolution,_seed);
 
-	uint idx = id.x;
+	uint idx = Index(id.xy);
 	Organism organism = organismBuffer[idx];
 
 
 	//need this for render object args buffer
-	organismFiltered.Append(idx);
-
-
+	// organismFiltered.Append(idx);
 
 	if(organism.alive == 0)
 	{
 		return;
 	}
 
+
+	OrganismController oController;
+	PheromoneController pController;
+	
+	oController.RandomMove(organism, 5.0);
+
 	// ProcessOrganismNeurons(EMITTER, organism);
 	uint worldPositionIndex = Index(organism.position);
-	pheromoneBuffer[worldPositionIndex].colour = float4(worldPositionIndex/_resolution.x*_resolution.y,0,1,1);
 
-	//RANDOM MOVE
-	float seed = _time*_deltaTime;
-	// organism.orientation = float2(RandomNormalized(worldPositionIndex+idx+seed), RandomNormalized(worldPositionIndex-idx-seed ));
-	organism.orientation = float2(0,1);
-	// float2 nextMove = DegToVec(RandomRange(worldPositionIndex,-360.0,360.0));
-	
-	organism.position += organism.orientation*5*_deltaTime;
+	pController.ReleasePheromone(organism);
+
+
 	
 	//make update
 
 	organismBuffer[idx] = organism;
+	organismTexture[organism.position] = float4(1,0,0,1);
 
 	
 	// //only want the filtered ones
 	// organismFiltered.Append(worldPositionIndex);
 }
 
-uniform float weights[5] = {0.0,0.1945945946, 0.1216216216, 0.0540540541,0.0162162162};
-float4 FastBlur(uint3 id, float2 dir)
-{
-	//this will be our RGBA sum
-	float4 sum = float4(0,0,0,0);
-	
-	//our original texcoord for this fragment
-	uint2 tc = id.xy;
-	
-	//the amount to blur, i.e. how far off center to sample from 
-	//1.0 -> blur by one pixel
-	//2.0 -> blur by two pixels, etc.
-	float blur = 1; 
-    
-	//the direction of our blur
-	//(1.0, 0.0) -> x-axis blur
-	//(0.0, 1.0) -> y-axis blur
-	float hstep = dir.x;
-	float vstep = dir.y;
-    
-	//apply blurring, using a 9-tap filter with predefined gaussian weights
-	
-	for(int i = 4; i >= 1; i--)
-	{
-		uint2 coord = uint2(tc.x - i*blur*hstep, tc.y - i*blur*vstep);
-		uint index = Index(coord);
- 		sum += pheromoneBuffer[index].colour * weights[i];
-	};
-
-	uint indexMid = Index(tc);
-	sum +=  pheromoneBuffer[indexMid].colour * 0.2270270270;
-
-	for(int i = 1; i <= 4; i++)
-	{
-		uint2 coord = uint2(tc.x + i*blur*hstep, tc.y + i*blur*vstep);
-		uint index = Index(coord);
- 		sum += pheromoneBuffer[index].colour * weights[i];
-	};
-   
-	return sum;
-}
 
  
-[numthreads(numThreads,1,1)]
+[numthreads(numThreads,numThreads,1)]
 void ProcessPheromones (uint3 id : SV_DispatchThreadID)
 {
-	// uint index =  Index(id.xy);
+	UpdateProgramState(id, _time,_deltaTime,_resolution, _seed);
+
+	PheromoneController pController;
+	uint index =  Index(id.xy);
 	// float originalAlpha = pheromoneBuffer[index].colour.a;
-	// pheromoneBuffer[index].colour = FastBlur(id, float2(1,0));
-	// pheromoneBuffer[index].colour =  FastBlur(id, float2(0,1));
+	pController.ShitBlur(id); 
+	// pheromoneBuffer[index].colour =  pController.FastBlur(id, float2(0,1));
 
 	
 	// pheromoneBuffer[index].colour.a = originalAlpha*=0.2*programState._deltaTime;
-	
+	pheromoneTexture[id.xy] = pheromoneBuffer[index].colour;
 }
+
